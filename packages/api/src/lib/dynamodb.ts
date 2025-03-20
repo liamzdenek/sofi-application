@@ -359,50 +359,72 @@ export async function listReports(
   limit = 20,
   offset = 0
 ): Promise<{ reports: ReportMetadata[]; total: number }> {
-  const scanParams: any = {
-    TableName: REPORTS_TABLE,
-    Limit: limit,
-  };
-
-  const filterExpressions = [];
-  const expressionAttributeValues: Record<string, any> = {};
-
+  // If experimentId is provided, use the GSI to query by experimentId
   if (experimentId) {
-    filterExpressions.push('experimentId = :experimentId');
-    expressionAttributeValues[':experimentId'] = experimentId;
-  }
+    const queryParams: any = {
+      TableName: REPORTS_TABLE,
+      IndexName: 'experimentId-index',
+      KeyConditionExpression: 'experimentId = :experimentId',
+      ExpressionAttributeValues: {
+        ':experimentId': experimentId,
+      },
+      Limit: limit,
+    };
 
-  if (status) {
-    filterExpressions.push('#statusAttr = :status');
-    expressionAttributeValues[':status'] = status;
-  }
-
-  if (filterExpressions.length > 0) {
-    scanParams.FilterExpression = filterExpressions.join(' AND ');
-    scanParams.ExpressionAttributeValues = expressionAttributeValues;
-    
-    // Add ExpressionAttributeNames if we're using status
+    // Add status filter if provided
     if (status) {
-      if (!scanParams.ExpressionAttributeNames) {
-        scanParams.ExpressionAttributeNames = {};
-      }
-      scanParams.ExpressionAttributeNames['#statusAttr'] = 'status';
+      queryParams.FilterExpression = '#statusAttr = :status';
+      queryParams.ExpressionAttributeValues[':status'] = status;
+      queryParams.ExpressionAttributeNames = {
+        '#statusAttr': 'status',
+      };
     }
+
+    const response = await docClient.send(new QueryCommand(queryParams));
+
+    const reports: ReportMetadata[] = [];
+    if (response.Items) {
+      // Apply offset manually
+      const paginatedReports = response.Items.slice(offset, offset + limit);
+      reports.push(...(paginatedReports as ReportMetadata[]));
+    }
+
+    return {
+      reports,
+      total: response.Count || 0,
+    };
+  } else {
+    // If no experimentId is provided, use scan operation
+    const scanParams: any = {
+      TableName: REPORTS_TABLE,
+      Limit: limit,
+    };
+
+    // Add status filter if provided
+    if (status) {
+      scanParams.FilterExpression = '#statusAttr = :status';
+      scanParams.ExpressionAttributeValues = {
+        ':status': status,
+      };
+      scanParams.ExpressionAttributeNames = {
+        '#statusAttr': 'status',
+      };
+    }
+
+    const response = await docClient.send(new ScanCommand(scanParams));
+
+    const reports: ReportMetadata[] = [];
+    if (response.Items) {
+      // Apply offset manually
+      const paginatedReports = response.Items.slice(offset, offset + limit);
+      reports.push(...(paginatedReports as ReportMetadata[]));
+    }
+
+    return {
+      reports,
+      total: response.Count || 0,
+    };
   }
-
-  const response = await docClient.send(new ScanCommand(scanParams));
-
-  const reports: ReportMetadata[] = [];
-  if (response.Items) {
-    // Apply offset manually
-    const paginatedReports = response.Items.slice(offset, offset + limit);
-    reports.push(...(paginatedReports as ReportMetadata[]));
-  }
-
-  return {
-    reports,
-    total: response.Count || 0,
-  };
 }
 
 export async function updateReportStatus(

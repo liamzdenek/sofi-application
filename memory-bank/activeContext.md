@@ -61,7 +61,11 @@ We have completed the project setup phase, backend implementation, and frontend 
   - Implemented AWS SDK integration for DynamoDB and S3
   - Added statistical analysis using Apache Commons Math
   - Created Docker configuration for AWS Batch deployment
-  - Fixed issues with DynamoDB query expressions
+  - Fixed issues with DynamoDB query expressions:
+    - Corrected a mismatch between the DynamoDB table structure and Java model class
+    - Fixed the ExperimentEvent class by moving the @DynamoDbPartitionKey annotation from getId() to getExperimentId()
+    - Updated the query approach to use QueryConditional.sortBetween() for timestamp range queries
+    - Ensured the AWS region was set to us-west-2 for all AWS service clients
   - Temporarily disabled tests for future implementation
 - Fixed CloudFront 403 Forbidden error by:
   - Removing website configuration from S3 bucket
@@ -185,7 +189,44 @@ We've successfully implemented and deployed a comprehensive AWS CDK stack that f
 The deployment process is streamlined using NX commands:
 - `npx nx build api` - Builds the API
 - `npx nx build web` - Builds the web application
-- `npx nx run infrastructure:deploy` - Builds all dependencies and deploys the CDK stack
+- `npx nx run infrastructure:build-report-generator` - Builds and deploys the report-generator Docker image to ECR
+- `npx nx run infrastructure:deploy` - Builds all dependencies (including the report-generator) and deploys the CDK stack
+
+We've created a build and deployment pipeline for the report-generator:
+- Created a `build-and-deploy.sh` script in the packages/report-generator directory that:
+  - Builds the report-generator JAR using Gradle
+  - Builds a Docker image
+  - Logs in to AWS ECR
+  - Tags the Docker image
+  - Pushes the Docker image to ECR
+- Added a build-report-generator target to the infrastructure project
+- Integrated this into the deployment process so the Docker image is always built before infrastructure deployment
+
+We've also fixed bugs in the reports functionality:
+- The listReports API was always returning empty results
+  - The reports table has a GSI (Global Secondary Index) for querying reports by experimentId
+  - The listReports function was using a scan operation with a filter expression instead of using the GSI
+  - Updated the function to use a query operation with the GSI when experimentId is provided
+  - This significantly improves performance and ensures reports are correctly returned
+
+- Report statuses were not being updated in DynamoDB
+  - The DynamoDBService.updateReportStatus method in the report-generator was only logging the update but not actually updating the database
+  - Implemented the actual DynamoDB update operation using the AWS SDK
+  - Handled the "metrics" reserved keyword in DynamoDB by using an expression attribute name
+  - This ensures that reports are properly marked as COMPLETED when they finish processing
+  - Fixed the issue where all reports were showing as PENDING even after completion
+  - Created a local-testing.md document with instructions for testing the report-generator locally
+
+- The report UI was crashing when displaying reports
+  - The UI was trying to call toFixed() on null improvement values
+  - Updated the ReportsPage.tsx to check for both undefined and null improvement values
+  - This prevents the UI from crashing when displaying reports
+
+- Conversions were not being counted correctly
+  - The report generator was looking for events with action "CONVERSION", but the actual events had action "LOAN_ACCEPTANCE"
+  - Updated the report generator to recognize "LOAN_ACCEPTANCE" as a conversion event
+  - Changed the conversion counting to count unique users who converted rather than counting all conversion events
+  - This prevents statistical calculation errors and provides more accurate conversion rates
 
 The application has been successfully deployed with the following endpoints:
 - API: https://a9wkrb830e.execute-api.us-west-2.amazonaws.com/api/

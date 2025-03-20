@@ -128,10 +128,17 @@ The Experimentation Platform Accelerator follows a simplified architecture with 
    - Use TypeScript by default
    - Use CSS modules, no Tailwind CSS or other CSS frameworks
    - Always use `--save` or `--save-dev` for dependencies
+   - Automate Docker image building and deployment as part of the infrastructure deployment process
 
 5. **Infrastructure**:
    - Design infrastructure for AWS
    - Deploy using CDK
    - Use NodejsFunction primitive in CDK
+
+6. **Deployment Pipeline**:
+   - Automated build and deployment process for all components
+   - Docker image building and ECR deployment integrated into the infrastructure deployment
+   - Report generator build and deployment automated via shell script
+   - All deployment steps orchestrated through NX targets
 
 These patterns and rules ensure a consistent, maintainable, and scalable implementation that showcases best practices in modern application development.

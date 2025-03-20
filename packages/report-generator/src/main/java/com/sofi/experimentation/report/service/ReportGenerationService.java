@@ -165,11 +165,13 @@ public class ReportGenerationService {
         
         int totalEvents = events.size();
         
-        // Count conversion events
-        long totalConversions = events.stream()
-                .filter(e -> "CONVERSION".equals(e.getAction()))
-                .count();
+        // Count unique users who have at least one conversion event (LOAN_ACCEPTANCE is considered a conversion)
+        Set<String> convertedUsers = events.stream()
+                .filter(e -> "LOAN_ACCEPTANCE".equals(e.getAction()) || "CONVERSION".equals(e.getAction()))
+                .map(ExperimentEvent::getUserId)
+                .collect(Collectors.toSet());
         
+        long totalConversions = convertedUsers.size();
         double overallConversionRate = totalUsers > 0 ? (double) totalConversions / totalUsers : 0;
         
         ReportData.Overall overall = new ReportData.Overall();
@@ -180,6 +182,14 @@ public class ReportGenerationService {
         
         // Calculate metrics by variant
         Map<String, ReportData.VariantMetrics> variantMetrics = new HashMap<>();
+        
+        // Safety check for variants
+        if (experiment.getVariants() == null || experiment.getVariants().isEmpty()) {
+            logger.warn("No variants found in experiment {}. Using empty metrics.", experiment.getId());
+            metrics.setByVariant(variantMetrics);
+            metrics.setTimeSeries(new ReportData.TimeSeries());
+            return metrics;
+        }
         
         // Find control variant (first variant is assumed to be control)
         String controlVariantId = experiment.getVariants().get(0).getId();
@@ -196,8 +206,13 @@ public class ReportGenerationService {
                             Collectors.summingInt(e -> 1)
                     ));
             
-            // Calculate conversion rate
-            int conversions = eventCounts.getOrDefault("CONVERSION", 0);
+            // Count unique users who have converted (LOAN_ACCEPTANCE or CONVERSION)
+            Set<String> variantConvertedUsers = variantEvents.stream()
+                    .filter(e -> "LOAN_ACCEPTANCE".equals(e.getAction()) || "CONVERSION".equals(e.getAction()))
+                    .map(ExperimentEvent::getUserId)
+                    .collect(Collectors.toSet());
+            
+            int conversions = variantConvertedUsers.size();
             double conversionRate = variantUsers.size() > 0 ? (double) conversions / variantUsers.size() : 0;
             
             ReportData.VariantMetrics variantMetric = new ReportData.VariantMetrics();
@@ -205,32 +220,71 @@ public class ReportGenerationService {
             variantMetric.setEvents(eventCounts);
             variantMetric.setConversionRate(conversionRate);
             
-            // Calculate improvement and significance if not control
-            if (!variantId.equals(controlVariantId)) {
-                double controlConversionRate = variantMetrics.get(controlVariantId).getConversionRate();
-                double improvement = analysisService.calculateImprovement(controlConversionRate, conversionRate);
-                variantMetric.setImprovement(improvement);
-                
-                // Calculate statistical significance
-                int controlUsers = variantMetrics.get(controlVariantId).getUsers();
-                int controlConversions = variantMetrics.get(controlVariantId).getEvents().getOrDefault("CONVERSION", 0);
-                
-                double pValue = analysisService.calculateSignificance(
-                        controlUsers,
-                        controlConversions,
-                        variantUsers.size(),
-                        conversions
-                );
-                variantMetric.setSignificanceLevel(pValue);
-            }
+            // Store the conversions count in a custom field in the events map
+            eventCounts.put("__CONVERSIONS_COUNT", conversions);
             
             variantMetrics.put(variantId, variantMetric);
+            
+            // For non-control variants, we need to wait until the control variant is processed
+            // to calculate improvement and significance
+        }
+        
+        // Now calculate improvement and significance for non-control variants
+        // This ensures the control variant metrics are already in the map
+        if (variantMetrics.containsKey(controlVariantId)) {
+            double controlConversionRate = variantMetrics.get(controlVariantId).getConversionRate();
+            int controlUsers = variantMetrics.get(controlVariantId).getUsers();
+            // Get the conversions count from the events map
+            int controlConversions = variantMetrics.get(controlVariantId).getEvents().getOrDefault("__CONVERSIONS_COUNT", 0);
+            
+            for (Variant variant : experiment.getVariants()) {
+                String variantId = variant.getId();
+                
+                // Skip the control variant
+                if (variantId.equals(controlVariantId)) {
+                    continue;
+                }
+                
+                // Get the variant metrics
+                ReportData.VariantMetrics variantMetric = variantMetrics.get(variantId);
+                if (variantMetric == null) {
+                    continue;
+                }
+                
+                try {
+                    // Calculate improvement
+                    double improvement = analysisService.calculateImprovement(
+                            controlConversionRate,
+                            variantMetric.getConversionRate()
+                    );
+                    variantMetric.setImprovement(improvement);
+                    
+                    // Calculate statistical significance
+                    double pValue = analysisService.calculateSignificance(
+                            controlUsers,
+                            controlConversions,
+                            variantMetric.getUsers(),
+                            variantMetric.getEvents().getOrDefault("__CONVERSIONS_COUNT", 0)
+                    );
+                    variantMetric.setSignificanceLevel(pValue);
+                } catch (Exception e) {
+                    logger.warn("Error calculating metrics for variant {}: {}", variantId, e.getMessage());
+                    // Set default values
+                    variantMetric.setImprovement(0.0);
+                    variantMetric.setSignificanceLevel(1.0);
+                }
+            }
         }
         
         metrics.setByVariant(variantMetrics);
         
         // Calculate time series data
-        metrics.setTimeSeries(calculateTimeSeries(events, eventsByVariant));
+        try {
+            metrics.setTimeSeries(calculateTimeSeries(events, eventsByVariant));
+        } catch (Exception e) {
+            logger.warn("Error calculating time series data: {}", e.getMessage());
+            metrics.setTimeSeries(new ReportData.TimeSeries());
+        }
         
         return metrics;
     }
@@ -287,9 +341,13 @@ public class ReportGenerationService {
                 List<ExperimentEvent> dateEvents = eventsByDate.getOrDefault(date, Collections.emptyList());
                 eventCounts.add(dateEvents.size());
                 
-                long conversions = dateEvents.stream()
-                        .filter(e -> "CONVERSION".equals(e.getAction()))
-                        .count();
+                // Count unique users who converted on this date
+                Set<String> dateConvertedUsers = dateEvents.stream()
+                        .filter(e -> "LOAN_ACCEPTANCE".equals(e.getAction()) || "CONVERSION".equals(e.getAction()))
+                        .map(ExperimentEvent::getUserId)
+                        .collect(Collectors.toSet());
+                
+                long conversions = dateConvertedUsers.size();
                 conversionCounts.add((int) conversions);
             }
             

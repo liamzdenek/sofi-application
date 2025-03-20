@@ -16,36 +16,42 @@ export function ReportsPage() {
   const [generatingReport, setGeneratingReport] = useState(false);
   const [selectedExperiment, setSelectedExperiment] = useState<string>('');
 
+  // Function to fetch reports and experiments data
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const apiClient = new ExperimentApiClient(API_URL);
+      
+      // Fetch reports
+      const reportsResponse = await apiClient.listReports({ status: 'COMPLETED' });
+      setReports(reportsResponse.reports);
+      
+      // Fetch experiments
+      const experimentsResponse = await apiClient.listExperiments();
+      
+      // Convert experiments array to a map for easier lookup
+      const experimentsMap: Record<string, Experiment> = {};
+      experimentsResponse.experiments.forEach(experiment => {
+        experimentsMap[experiment.id] = experiment;
+      });
+      
+      setExperiments(experimentsMap);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError('Failed to load reports. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle refresh button click
+  const handleRefresh = () => {
+    fetchData();
+  };
+
   // Fetch reports and experiments on component mount
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const apiClient = new ExperimentApiClient(API_URL);
-        
-        // Fetch reports
-        const reportsResponse = await apiClient.listReports({ status: 'COMPLETED' });
-        setReports(reportsResponse.reports);
-        
-        // Fetch experiments
-        const experimentsResponse = await apiClient.listExperiments();
-        
-        // Convert experiments array to a map for easier lookup
-        const experimentsMap: Record<string, Experiment> = {};
-        experimentsResponse.experiments.forEach(experiment => {
-          experimentsMap[experiment.id] = experiment;
-        });
-        
-        setExperiments(experimentsMap);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Failed to load reports. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
 
@@ -88,8 +94,7 @@ export function ReportsPage() {
       await apiClient.generateReport({ experimentId: selectedExperiment });
       
       // Refresh the reports list
-      const reportsResponse = await apiClient.listReports({ status: 'COMPLETED' });
-      setReports(reportsResponse.reports);
+      await fetchData();
       
       setError(null);
     } catch (err) {
@@ -133,7 +138,16 @@ export function ReportsPage() {
 
       <div className={styles.content}>
         <div className={styles.reportsList}>
-          <h2>Available Reports</h2>
+          <div className={styles.reportsHeader}>
+            <h2>Available Reports</h2>
+            <button
+              className={styles.refreshButton}
+              onClick={handleRefresh}
+              disabled={loading}
+            >
+              {loading ? 'Refreshing...' : 'Refresh'}
+            </button>
+          </div>
           {loading && !reportData ? (
             <LoadingScreen message="Loading reports..." />
           ) : reports.length === 0 ? (
@@ -235,7 +249,7 @@ export function ReportsPage() {
                             <td>{data.users}</td>
                             <td>{(data.conversionRate * 100).toFixed(2)}%</td>
                             <td>
-                              {data.improvement !== undefined ? (
+                              {data.improvement !== undefined && data.improvement !== null ? (
                                 <span className={data.improvement > 0 ? styles.positive : styles.negative}>
                                   {data.improvement > 0 ? '+' : ''}{data.improvement.toFixed(2)}%
                                 </span>

@@ -194,7 +194,40 @@ Potential challenges for the implementation phase:
 
 6. **Java Testing Framework**: We encountered issues with the Mockito testing framework in the Java report generator. We've temporarily disabled tests and added them to the todo list for future implementation.
 
-7. **DynamoDB Query Expressions**: We had to fix an issue with DynamoDB query expressions in the Java code, where the filterExpression method expected an Expression object instead of a String.
+7. **DynamoDB Query Expressions**: ✅ FIXED - We fixed issues with DynamoDB query expressions in the Java code:
+   - Corrected a mismatch between the DynamoDB table structure and Java model class
+   - Fixed the ExperimentEvent class by moving the @DynamoDbPartitionKey annotation from getId() to getExperimentId()
+   - Updated the query approach to use QueryConditional.sortBetween() for timestamp range queries
+   - Ensured the AWS region was set to us-west-2 for all AWS service clients
+
+8. **Report Generator Deployment**: ✅ IMPROVED - Created a streamlined build and deployment pipeline for the report-generator:
+   - Created a `build-and-deploy.sh` script that builds the JAR, creates a Docker image, and pushes it to ECR
+   - Added a build-report-generator target to the infrastructure project
+   - Integrated this into the deployment process so the Docker image is always built before infrastructure deployment
+
+9. **Reports API Bug**: ✅ FIXED - Fixed an issue where the listReports API was always returning empty results:
+   - The reports table has a GSI (Global Secondary Index) for querying reports by experimentId
+   - The listReports function was using a scan operation with a filter expression instead of using the GSI
+   - Updated the function to use a query operation with the GSI when experimentId is provided
+   - This significantly improves performance and ensures reports are correctly returned
+
+10. **Report Status Update Bug**: ✅ FIXED - Fixed an issue where report statuses were not being updated in DynamoDB:
+    - The DynamoDBService.updateReportStatus method in the report-generator was only logging the update but not actually updating the database
+    - Implemented the actual DynamoDB update operation using the AWS SDK
+    - Handled the "metrics" reserved keyword in DynamoDB by using an expression attribute name
+    - This ensures that reports are properly marked as COMPLETED when they finish processing
+    - Fixed the issue where all reports were showing as PENDING even after completion
+
+11. **Report UI Bug**: ✅ FIXED - Fixed an issue where the report page was crashing when displaying reports:
+    - The UI was trying to call toFixed() on null improvement values
+    - Updated the ReportsPage.tsx to check for both undefined and null improvement values
+    - This prevents the UI from crashing when displaying reports
+
+12. **Conversion Counting Bug**: ✅ FIXED - Fixed an issue where conversions were not being counted correctly:
+    - The report generator was looking for events with action "CONVERSION", but the actual events had action "LOAN_ACCEPTANCE"
+    - Updated the report generator to recognize "LOAN_ACCEPTANCE" as a conversion event
+    - Changed the conversion counting to count unique users who converted rather than counting all conversion events
+    - This prevents statistical calculation errors and provides more accurate conversion rates
 
 These issues and challenges will be monitored and addressed as we move into the implementation phase.
 

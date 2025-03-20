@@ -71,9 +71,35 @@
   overflow-x: auto;
 }
 
-.reportsList h2 {
-  margin-top: 0;
+.reportsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1.5rem;
+}
+
+.reportsHeader h2 {
+  margin: 0;
+}
+
+.refreshButton {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background-color: #2980b9;
+}
+
+.refreshButton:disabled {
+  background-color: #a0c4de;
+  cursor: not-allowed;
 }
 
 .emptyState {

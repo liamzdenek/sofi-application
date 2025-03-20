@@ -52,6 +52,7 @@
 
 .experimentsList {
   overflow-x: auto;
+  grid-column: 1 / 3;
 }
 
 .emptyState {
