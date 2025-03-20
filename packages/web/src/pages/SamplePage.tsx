@@ -2,34 +2,44 @@ import React, { useState, useCallback, useEffect } from 'react';
 import {
   ExperimentVariant,
   useExperiment,
-  useExperimentEvent
+  useExperimentEvent,
+  useExperimentContext
 } from '@sofi-application/ui-components';
 import { ExperimentSelector } from '../components/ExperimentSelector';
+import { LoadingScreen } from '../components/LoadingScreen';
 import { ExperimentApiClient, Experiment } from '@sofi-application/shared';
 import styles from './SamplePage.module.css';
 
 // Get the API URL from environment variables with a localhost default
 const API_URL = process.env.VITE_EXPERIMENTATION_API_URL || process.env.REACT_APP_EXPERIMENTATION_API_URL || 'http://localhost:3000';
 
+// Helper function to generate a random session ID
+const generateSessionId = () => `session-${Math.floor(Math.random() * 1000000)}`;
+
 export function SamplePage() {
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: 'Premium Headphones', price: 199.99, quantity: 1 },
-    { id: 2, name: 'Wireless Keyboard', price: 89.99, quantity: 1 },
-  ]);
-  const [checkoutComplete, setCheckoutComplete] = useState(false);
+  const [loanAccepted, setLoanAccepted] = useState(false);
   const [selectedExperimentId, setSelectedExperimentId] = useState<string | null>(null);
   const [availableExperiments, setAvailableExperiments] = useState<Experiment[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // For demo purposes, we'll use a fixed user ID and session ID
+  // For demo purposes, we'll use a fixed user ID but allow session ID to be refreshed
   const userId = 'user-123';
-  const sessionId = 'session-456';
+  const [sessionId, setSessionId] = useState(generateSessionId());
+  
+  // Loan details
+  const loanAmount = 25000;
+  const interestRate = 5.99;
+  const loanTerm = 60; // months
+  const monthlyPayment = 483.15;
   
   // Use the experiment hook to get experiment data for the current user
-  const { experiments } = useExperiment(userId, sessionId);
+  const { experiments, loading: experimentsLoading } = useExperiment(userId, sessionId);
   
   // Use the experiment event hook to record events
   const { recordEvent } = useExperimentEvent(userId, sessionId);
+  
+  // Use the experiment context to access the refreshExperiments function
+  const experimentContext = useExperimentContext();
   
   // Fetch all active experiments for the selector
   useEffect(() => {
@@ -39,6 +49,11 @@ export function SamplePage() {
         const apiClient = new ExperimentApiClient(API_URL);
         const response = await apiClient.listExperiments({ status: 'ACTIVE' });
         setAvailableExperiments(response.experiments);
+        
+        // Auto-select the first experiment if available
+        if (response.experiments.length > 0 && !selectedExperimentId) {
+          setSelectedExperimentId(response.experiments[0].id);
+        }
       } catch (err) {
         console.error('Error fetching experiments:', err);
       } finally {
@@ -47,26 +62,24 @@ export function SamplePage() {
     };
 
     fetchExperiments();
-  }, []);
-  
-  // Calculate the total price
-  const totalPrice = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+  }, [selectedExperimentId]);
   
   // Handle experiment selection
   const handleSelectExperiment = useCallback((experimentId: string) => {
     setSelectedExperimentId(experimentId);
   }, []);
   
-  // Handle checkout button click
-  const handleCheckout = (experimentId: string, variantId: string) => {
-    // Record the checkout event
-    recordEvent(experimentId, variantId, 'CHECKOUT_CLICK', {
-      cartTotal: totalPrice,
-      itemCount: cartItems.length,
+  // Handle accept loan button click
+  const handleAcceptLoan = (experimentId: string, variantId: string) => {
+    // Record the loan acceptance event
+    recordEvent(experimentId, variantId, 'LOAN_ACCEPTANCE', {
+      loanAmount: loanAmount,
+      interestRate: interestRate,
+      loanTerm: loanTerm
     });
     
-    // Simulate a successful checkout
-    setCheckoutComplete(true);
+    // Simulate a successful loan acceptance
+    setLoanAccepted(true);
   };
   
   // Find the selected experiment from available experiments
@@ -80,122 +93,143 @@ export function SamplePage() {
     if (selectedExperiment && assignedVariant && assignedVariant.config.buttonColor) {
       return assignedVariant.config.buttonColor;
     }
-    return '#3498db'; // Default blue
+    return '#2dcccd'; // SoFi teal color
   };
+
+  // Determine if we're in a loading state
+  const isLoading = loading || experimentsLoading;
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Sample Checkout Page</h1>
-      <p className={styles.description}>
-        This page demonstrates how experiments can be applied to a checkout flow.
-        Select an experiment below to see it in action.
-      </p>
+      {isLoading && <LoadingScreen message="Loading experiment data..." />}
+      <div className={styles.header}>
+        <h1 className={styles.title}>SoFi Personal Loan Acceptance</h1>
+        <p className={styles.description}>
+          Congratulations! Your personal loan has been approved. Review the details below and accept your loan offer.
+        </p>
+        
+        <div className={styles.sessionInfo}>
+          <p>Current Session ID: <code>{sessionId}</code></p>
+          <button
+            className={styles.refreshButton}
+            onClick={async () => {
+              try {
+                // Show loading state
+                setLoading(true);
+                
+                // Generate new session ID
+                const newSessionId = generateSessionId();
+                setSessionId(newSessionId);
+                
+                // Reset loan accepted state
+                setLoanAccepted(false);
+                
+                // Refresh experiments with new session ID
+                await experimentContext.refreshExperiments();
+                
+                // Also refresh available experiments list
+                const apiClient = new ExperimentApiClient(API_URL);
+                const response = await apiClient.listExperiments({ status: 'ACTIVE' });
+                setAvailableExperiments(response.experiments);
+                
+                // Auto-select the first experiment if available
+                if (response.experiments.length > 0 && !selectedExperimentId) {
+                  setSelectedExperimentId(response.experiments[0].id);
+                }
+              } catch (err) {
+                console.error('Error fetching experiments:', err);
+              } finally {
+                setLoading(false);
+              }
+            }}
+          >
+            Refresh Session (Get New Variant)
+          </button>
+        </div>
+      </div>
       
       <ExperimentSelector
         onSelectExperiment={handleSelectExperiment}
         selectedExperimentId={selectedExperimentId}
       />
       
-      {checkoutComplete ? (
+      {loanAccepted ? (
         <div className={styles.successMessage}>
-          <h2>Thank you for your order!</h2>
-          <p>Your order has been placed successfully.</p>
-          <button 
+          <h2>Congratulations on your new loan!</h2>
+          <p>Your SoFi personal loan has been successfully accepted. Funds will be deposited into your account within 1-3 business days.</p>
+          <button
             className={styles.continueButton}
-            onClick={() => setCheckoutComplete(false)}
+            onClick={() => setLoanAccepted(false)}
           >
-            Continue Shopping
+            Return to Dashboard
           </button>
         </div>
       ) : (
-        <div className={styles.checkoutContainer}>
-          <div className={styles.cartSection}>
-            <h2>Your Cart</h2>
-            <div className={styles.cartItems}>
-              {cartItems.map(item => (
-                <div key={item.id} className={styles.cartItem}>
-                  <div className={styles.itemDetails}>
-                    <h3>{item.name}</h3>
-                    <p className={styles.itemPrice}>${item.price.toFixed(2)}</p>
-                  </div>
-                  <div className={styles.itemQuantity}>
-                    <button 
-                      className={styles.quantityButton}
-                      onClick={() => {
-                        setCartItems(prevItems =>
-                          prevItems.map(prevItem =>
-                            prevItem.id === item.id && prevItem.quantity > 1
-                              ? { ...prevItem, quantity: prevItem.quantity - 1 }
-                              : prevItem
-                          )
-                        );
-                      }}
-                      disabled={item.quantity <= 1}
-                    >
-                      -
-                    </button>
-                    <span>{item.quantity}</span>
-                    <button 
-                      className={styles.quantityButton}
-                      onClick={() => {
-                        setCartItems(prevItems =>
-                          prevItems.map(prevItem =>
-                            prevItem.id === item.id
-                              ? { ...prevItem, quantity: prevItem.quantity + 1 }
-                              : prevItem
-                          )
-                        );
-                      }}
-                    >
-                      +
-                    </button>
-                  </div>
-                  <div className={styles.itemTotal}>
-                    ${(item.price * item.quantity).toFixed(2)}
-                  </div>
+        <div className={styles.loanContainer}>
+          <div className={styles.loanDetailsSection}>
+            <h2>Your Loan Details</h2>
+            <div className={styles.loanSummary}>
+              <div className={styles.loanAmount}>
+                <span className={styles.loanAmountValue}>${loanAmount.toLocaleString()}</span>
+                <span className={styles.loanAmountLabel}>Loan Amount</span>
+              </div>
+              
+              <div className={styles.loanTerms}>
+                <div className={styles.loanTermItem}>
+                  <span className={styles.loanTermValue}>{interestRate}%</span>
+                  <span className={styles.loanTermLabel}>Interest Rate</span>
                 </div>
-              ))}
+                <div className={styles.loanTermItem}>
+                  <span className={styles.loanTermValue}>{loanTerm} months</span>
+                  <span className={styles.loanTermLabel}>Loan Term</span>
+                </div>
+                <div className={styles.loanTermItem}>
+                  <span className={styles.loanTermValue}>${monthlyPayment}</span>
+                  <span className={styles.loanTermLabel}>Monthly Payment</span>
+                </div>
+              </div>
             </div>
             
-            <div className={styles.cartSummary}>
-              <div className={styles.summaryRow}>
-                <span>Subtotal:</span>
-                <span>${totalPrice.toFixed(2)}</span>
-              </div>
-              <div className={styles.summaryRow}>
-                <span>Shipping:</span>
-                <span>FREE</span>
-              </div>
-              <div className={styles.summaryRow}>
-                <span>Tax:</span>
-                <span>${(totalPrice * 0.08).toFixed(2)}</span>
-              </div>
-              <div className={`${styles.summaryRow} ${styles.total}`}>
-                <span>Total:</span>
-                <span>${(totalPrice * 1.08).toFixed(2)}</span>
-              </div>
+            <div className={styles.loanBenefits}>
+              <h3>SoFi Member Benefits</h3>
+              <ul>
+                <li>No origination fees</li>
+                <li>No prepayment penalties</li>
+                <li>Unemployment protection</li>
+                <li>Career coaching</li>
+                <li>Financial advising</li>
+              </ul>
             </div>
           </div>
           
-          <div className={styles.checkoutSection}>
-            <h2>Payment Information</h2>
+          <div className={styles.acceptanceSection}>
+            <h2>Accept Your Loan</h2>
             <div className={styles.formGroup}>
-              <label htmlFor="cardName">Name on Card</label>
-              <input type="text" id="cardName" placeholder="John Smith" />
+              <label htmlFor="fullName">Full Name</label>
+              <input type="text" id="fullName" defaultValue="John Smith" />
             </div>
             <div className={styles.formGroup}>
-              <label htmlFor="cardNumber">Card Number</label>
-              <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" />
+              <label htmlFor="email">Email Address</label>
+              <input type="email" id="email" defaultValue="john.smith@example.com" />
             </div>
-            <div className={styles.formRow}>
-              <div className={styles.formGroup}>
-                <label htmlFor="expDate">Expiration Date</label>
-                <input type="text" id="expDate" placeholder="MM/YY" />
-              </div>
-              <div className={styles.formGroup}>
-                <label htmlFor="cvv">CVV</label>
-                <input type="text" id="cvv" placeholder="123" />
-              </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="accountNumber">Bank Account Number</label>
+              <input type="text" id="accountNumber" defaultValue="12345678" />
+            </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="routingNumber">Routing Number</label>
+              <input type="text" id="routingNumber" defaultValue="987654321" />
+            </div>
+            
+            <div className={styles.termsAgreement}>
+              <input type="checkbox" id="termsAgreement" defaultChecked={true} />
+              <label htmlFor="termsAgreement">
+                I have read and agree to the <a href="#">Terms and Conditions</a> and <a href="#">Privacy Policy</a>
+              </label>
+            </div>
+            
+            <div className={styles.formNote}>
+              <p><strong>Note:</strong> This form is pre-populated for demonstration purposes.</p>
             </div>
             
             {/* Experiment Variant */}
@@ -210,44 +244,44 @@ export function SamplePage() {
                     ...acc,
                     [variant.id]: (
                       <button
-                        className={styles.checkoutButton}
+                        className={styles.acceptButton}
                         style={{
-                          backgroundColor: variant.config.buttonColor || '#3498db'
+                          backgroundColor: variant.config.buttonColor || '#2dcccd'
                         }}
-                        onClick={() => handleCheckout(selectedExperimentId, variant.id)}
+                        onClick={() => handleAcceptLoan(selectedExperimentId, variant.id)}
                       >
-                        Complete Checkout
+                        Accept Loan Offer
                       </button>
                     )
                   }), {})
                 }}
                 fallback={
                   <button
-                    className={styles.checkoutButton}
+                    className={styles.acceptButton}
                     style={{ backgroundColor: getButtonColor() }}
                     onClick={() => {
                       if (assignedVariant) {
-                        handleCheckout(
+                        handleAcceptLoan(
                           selectedExperimentId,
                           assignedVariant.variantId
                         );
                       } else {
-                        setCheckoutComplete(true);
+                        setLoanAccepted(true);
                       }
                     }}
                   >
-                    Complete Checkout
+                    Accept Loan Offer
                   </button>
                 }
               />
             ) : (
               <button
-                className={styles.checkoutButton}
-                style={{ backgroundColor: '#3498db' }}
-                onClick={() => setCheckoutComplete(true)}
+                className={styles.acceptButton}
+                style={{ backgroundColor: '#2dcccd' }}
+                onClick={() => setLoanAccepted(true)}
                 disabled={!selectedExperimentId}
               >
-                Complete Checkout
+                Accept Loan Offer
               </button>
             )}
           </div>
@@ -257,8 +291,8 @@ export function SamplePage() {
       <div className={styles.experimentInfo}>
         <h3>About This Experiment</h3>
         <p>
-          This page demonstrates an A/B test for the checkout button color. Different users will see different button colors,
-          and we track which color leads to more conversions.
+          This page demonstrates an A/B test for the loan acceptance button color. Different users will see different button colors,
+          and we track which color leads to more loan acceptances.
         </p>
         <p>
           Current experiment status:

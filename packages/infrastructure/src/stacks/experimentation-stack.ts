@@ -134,25 +134,39 @@ export class ExperimentationStack extends cdk.Stack {
       repositoryName: 'experimentation-report-generator',
       removalPolicy: cdk.RemovalPolicy.DESTROY, // For development only
     });
+    
+    // Grant pull permissions to the task execution role
+    reportGeneratorRepo.grantPull(taskExecutionRole);
 
-    // Create AWS Batch compute environment
-    const computeEnvironment = new batch.FargateComputeEnvironment(this, 'ComputeEnvironment', {
+    // Create VPC for AWS Batch
+    const batchVpc = new ec2.Vpc(this, 'BatchVpc', {
+      natGateways: 0,
+      subnetConfiguration: [
+        {
+          name: 'public',
+          subnetType: ec2.SubnetType.PUBLIC,
+        }
+      ]
+    });
+    
+    // Create security group for AWS Batch tasks
+    const batchSecurityGroup = new ec2.SecurityGroup(this, 'BatchSecurityGroup', {
+      vpc: batchVpc,
+      description: 'Security group for AWS Batch tasks',
+      allowAllOutbound: true, // Allow outbound traffic to the internet
+    });
+    
+    // Create AWS Batch compute environment with a new name to avoid update issues
+    const computeEnvironment = new batch.FargateComputeEnvironment(this, 'ComputeEnvironmentV2', {
       maxvCpus: 4,
       spot: false,
-      vpc: new ec2.Vpc(this, 'BatchVpc', {
-        natGateways: 0,
-        subnetConfiguration: [
-          {
-            name: 'public',
-            subnetType: ec2.SubnetType.PUBLIC,
-          }
-        ]
-      }),
+      vpc: batchVpc,
+      securityGroups: [batchSecurityGroup],
       serviceRole: batchExecutionRole
     });
 
-    // Create AWS Batch job queue
-    const jobQueue = new batch.CfnJobQueue(this, 'JobQueue', {
+    // Create AWS Batch job queue with a new name to avoid update issues
+    const jobQueue = new batch.CfnJobQueue(this, 'JobQueueV2', {
       priority: 1,
       computeEnvironmentOrder: [
         {
@@ -162,8 +176,8 @@ export class ExperimentationStack extends cdk.Stack {
       ],
     });
 
-    // Create AWS Batch job definition
-    const jobDefinition = new batch.CfnJobDefinition(this, 'ReportGeneratorJobDefinition', {
+    // Create AWS Batch job definition with a new name to avoid update issues
+    const jobDefinition = new batch.CfnJobDefinition(this, 'ReportGeneratorJobDefinitionV2', {
       type: 'container',
       containerProperties: {
         image: `${reportGeneratorRepo.repositoryUri}:latest`,
@@ -181,6 +195,9 @@ export class ExperimentationStack extends cdk.Stack {
           { name: 'DYNAMODB_EVENTS_TABLE', value: eventsTable.tableName },
           { name: 'S3_REPORTS_BUCKET', value: reportsBucket.bucketName },
         ],
+        networkConfiguration: {
+          assignPublicIp: 'ENABLED'
+        },
       },
       platformCapabilities: ['FARGATE'],
     });
@@ -238,7 +255,11 @@ export class ExperimentationStack extends cdk.Stack {
 
     // Add API Gateway proxy integration
     api.root.addProxy({
-      defaultIntegration: new apigateway.LambdaIntegration(apiFunction),
+      defaultIntegration: new apigateway.LambdaIntegration(apiFunction, {
+        proxy: true,
+        allowTestInvoke: true,
+        passthroughBehavior: apigateway.PassthroughBehavior.WHEN_NO_MATCH,
+      }),
       anyMethod: true,
     });
 

@@ -151,6 +151,35 @@ Now that we've set up the project structure and deployed the application, we've 
    - Adding handling for 403 errors in CloudFront, redirecting them to index.html with a 200 status code
    - Increasing memory limit for S3 bucket deployment to 1024MB
 
+8. **AWS Batch Connectivity Issue**: ✅ RESOLVED - Fixed the AWS Batch connectivity issue with the following changes:
+   - Added `assignPublicIp: 'ENABLED'` to the Fargate task network configuration
+   - Created an explicit security group for the Batch tasks with outbound internet access
+   - Granted ECR pull permissions to the task execution role
+
+9. **AWS Batch Update Issue**: ✅ RESOLVED - Fixed the AWS Batch update issue with the following changes:
+   - Created new AWS Batch resources with versioned names (V2 suffix) to avoid update conflicts
+   - AWS Batch doesn't allow updating certain parameters of existing compute environments
+   - This approach allows us to create new resources instead of trying to update immutable properties
+
+10. **Sample Page User Experience**: ✅ IMPROVED - Enhanced the sample page for better user experience:
+    - Added session refresh button at the top of the page to demonstrate different experiment variants
+    - Made the refresh button retrieve new variants immediately without page refresh
+    - Pre-populated form fields for quicker testing
+    - Added auto-selection of the first available experiment
+    - Improved UI with informative notes and better styling
+    - Added session ID display for better visibility of the current test session
+
+11. **Experiment Variant Assignment Bug**: ✅ FIXED - Fixed a bug in the variant assignment logic:
+    - The `getActiveExperimentsForUser` function was not using the session ID when determining variant assignment
+    - Modified the hash calculation to include the session ID along with the user ID
+    - This ensures that different sessions get different variants when refreshing the session
+
+12. **UI Loading States**: ✅ IMPROVED - Enhanced the user experience with consistent loading screens:
+    - Created a reusable LoadingScreen component with a spinner and customizable message
+    - Updated all pages to use the LoadingScreen component when loading data
+    - Added proper loading states during experiment refresh operations
+    - Improved visual feedback for users during data fetching operations
+
 Potential challenges for the implementation phase:
 
 1. **Time Constraint**: The one-day timeframe is ambitious for implementing all components. We may need to further simplify certain aspects as we progress.

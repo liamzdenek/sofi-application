@@ -1,146 +1,166 @@
 .container {
   max-width: 1000px;
   margin: 0 auto;
+  font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  color: #4a4a4a;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
 }
 
 .title {
   font-size: 2.5rem;
   margin-bottom: 1rem;
-  color: #2c3e50;
+  color: #0c2e47; /* SoFi dark blue */
+  font-weight: 700;
 }
 
 .description {
   font-size: 1.1rem;
-  color: #7f8c8d;
-  margin-bottom: 2rem;
+  color: #4a4a4a;
+  margin-bottom: 1rem;
+  line-height: 1.5;
 }
 
-.checkoutContainer {
+.sessionInfo {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #f0f9fa; /* Light teal background */
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid #e9ecef;
+}
+
+.sessionInfo p {
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.sessionInfo code {
+  background-color: #f0f0f0;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.loanContainer {
   display: grid;
   grid-template-columns: 1fr;
   gap: 2rem;
 }
 
 @media (min-width: 768px) {
-  .checkoutContainer {
+  .loanContainer {
     grid-template-columns: 1fr 1fr;
   }
 }
 
-.cartSection {
+.loanDetailsSection {
   background-color: white;
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.cartSection h2 {
+.loanDetailsSection h2 {
   margin-top: 0;
   margin-bottom: 1.5rem;
-  color: #2c3e50;
+  color: #0c2e47; /* SoFi dark blue */
+  font-weight: 600;
 }
 
-.cartItems {
+.loanSummary {
   margin-bottom: 2rem;
 }
 
-.cartItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 0;
+.loanAmount {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
   border-bottom: 1px solid #e9ecef;
 }
 
-.itemDetails {
-  flex: 1;
+.loanAmountValue {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #0c2e47; /* SoFi dark blue */
+  margin-bottom: 0.5rem;
 }
 
-.itemDetails h3 {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #2c3e50;
+.loanAmountLabel {
+  font-size: 1rem;
+  color: #6c757d;
 }
 
-.itemPrice {
-  margin: 0.25rem 0 0;
-  color: #7f8c8d;
-}
-
-.itemQuantity {
-  display: flex;
-  align-items: center;
-  margin: 0 1.5rem;
-}
-
-.itemQuantity span {
-  margin: 0 0.75rem;
-  min-width: 1.5rem;
+.loanTerms {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
   text-align: center;
 }
 
-.quantityButton {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  font-size: 1.25rem;
-  line-height: 1;
-  transition: background-color 0.2s ease;
-}
-
-.quantityButton:hover:not(:disabled) {
-  background-color: #e9ecef;
-}
-
-.quantityButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.itemTotal {
-  font-weight: 600;
-  color: #2c3e50;
-  min-width: 80px;
-  text-align: right;
-}
-
-.cartSummary {
+.loanTermItem {
+  padding: 1rem;
   background-color: #f8f9fa;
   border-radius: 8px;
-  padding: 1.5rem;
 }
 
-.summaryRow {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
-}
-
-.total {
-  font-weight: 700;
+.loanTermValue {
+  display: block;
   font-size: 1.25rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #dee2e6;
+  font-weight: 600;
+  color: #0c2e47; /* SoFi dark blue */
+  margin-bottom: 0.5rem;
 }
 
-.checkoutSection {
+.loanTermLabel {
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.loanBenefits {
+  background-color: #f0f9fa; /* Light teal background */
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.loanBenefits h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #0c2e47; /* SoFi dark blue */
+  font-weight: 600;
+}
+
+.loanBenefits ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.loanBenefits li {
+  margin-bottom: 0.5rem;
+  color: #4a4a4a;
+}
+
+.acceptanceSection {
   background-color: white;
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.checkoutSection h2 {
+.acceptanceSection h2 {
   margin-top: 0;
   margin-bottom: 1.5rem;
-  color: #2c3e50;
+  color: #0c2e47; /* SoFi dark blue */
+  font-weight: 600;
 }
 
 .formGroup {
@@ -151,7 +171,7 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: #2c3e50;
+  color: #4a4a4a;
 }
 
 .formGroup input {
@@ -162,13 +182,52 @@
   font-size: 1rem;
 }
 
-.formRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+.formGroup input:focus {
+  border-color: #2dcccd; /* SoFi teal */
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(45, 204, 205, 0.25);
 }
 
-.checkoutButton {
+.termsAgreement {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.termsAgreement input {
+  margin-top: 0.25rem;
+  margin-right: 0.5rem;
+}
+
+.termsAgreement label {
+  font-size: 0.875rem;
+  color: #4a4a4a;
+}
+
+.termsAgreement a {
+  color: #2dcccd; /* SoFi teal */
+  text-decoration: none;
+}
+
+.termsAgreement a:hover {
+  text-decoration: underline;
+}
+
+.formNote {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #2dcccd; /* SoFi teal */
+}
+
+.formNote p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #4a4a4a;
+}
+
+.acceptButton {
   width: 100%;
   padding: 1rem;
   border: none;
@@ -181,25 +240,32 @@
   margin-top: 1.5rem;
 }
 
-.checkoutButton:hover {
+.acceptButton:hover {
   filter: brightness(90%);
 }
 
+.acceptButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .successMessage {
-  background-color: #d4edda;
-  color: #155724;
+  background-color: #e6f7f7; /* Light teal background */
+  color: #0c2e47; /* SoFi dark blue */
   padding: 2rem;
   border-radius: 8px;
   text-align: center;
   margin: 2rem 0;
+  border: 1px solid #2dcccd; /* SoFi teal */
 }
 
 .successMessage h2 {
   margin-top: 0;
+  color: #0c2e47; /* SoFi dark blue */
 }
 
 .continueButton {
-  background-color: #28a745;
+  background-color: #2dcccd; /* SoFi teal */
   color: white;
   border: none;
   border-radius: 4px;
@@ -211,7 +277,7 @@
 }
 
 .continueButton:hover {
-  background-color: #218838;
+  background-color: #25b5b6; /* Darker teal */
 }
 
 .experimentInfo {
@@ -223,13 +289,13 @@
 
 .experimentInfo h3 {
   margin-top: 0;
-  color: #2c3e50;
+  color: #0c2e47; /* SoFi dark blue */
 }
 
 .experimentActive {
   display: inline-block;
   margin-left: 0.5rem;
-  color: #28a745;
+  color: #2dcccd; /* SoFi teal */
   font-weight: 600;
 }
 
@@ -238,4 +304,37 @@
   margin-left: 0.5rem;
   color: #6c757d;
   font-weight: 600;
+}
+
+.experimentActions {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.experimentActions p {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.experimentActions code {
+  background-color: #f0f0f0;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.refreshButton {
+  background-color: #0c2e47; /* SoFi dark blue */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.refreshButton:hover {
+  background-color: #0a253a; /* Darker blue */
 }

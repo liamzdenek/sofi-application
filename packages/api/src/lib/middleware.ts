@@ -2,6 +2,24 @@ import { Request, Response, NextFunction } from 'express';
 import { logger } from './logger';
 
 /**
+ * Middleware to add CORS headers to all responses
+ */
+export const corsHeaders = (req: Request, res: Response, next: NextFunction): void => {
+  // Add CORS headers to all responses
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).send();
+    return;
+  }
+  
+  next();
+};
+
+/**
  * Middleware to log incoming requests and outgoing responses
  */
 export const requestLogger = (req: Request, res: Response, next: NextFunction): void => {

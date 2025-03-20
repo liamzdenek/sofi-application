@@ -54,15 +54,16 @@
     "deploy": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "cd packages/infrastructure && cdk deploy --profile lz-demos --require-approval never",
+        "commands": [
+          "nx run api:build",
+          "nx run shared:build",
+          "VITE_EXPERIMENTATION_API_URL=https://a9wkrb830e.execute-api.us-west-2.amazonaws.com/api REACT_APP_EXPERIMENTATION_API_URL=https://a9wkrb830e.execute-api.us-west-2.amazonaws.com/api nx run web:build:production",
+          "nx run infrastructure:build",
+          "cd packages/infrastructure && cdk deploy --profile lz-demos --require-approval never"
+        ],
+        "parallel": false,
         "cwd": "."
-      },
-      "dependsOn": [
-        { "projects": ["api"], "target": "build" },
-        { "projects": ["web"], "target": "build" },
-        { "projects": ["shared"], "target": "build" },
-        { "projects": ["infrastructure"], "target": "build" }
-      ]
+      }
     }
   },
   "tags": ["scope:infra", "type:app"]

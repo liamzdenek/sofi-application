@@ -68,7 +68,6 @@ export async function createExperiment(
     new PutCommand({
       TableName: EXPERIMENTS_TABLE,
       Item: {
-        experimentId: experiment.id,
         version: 1, // Initial version
         ...experiment,
       },
@@ -80,23 +79,20 @@ export async function createExperiment(
 
 export async function getExperiment(id: string): Promise<Experiment | null> {
   const response = await docClient.send(
-    new QueryCommand({
+    new GetCommand({
       TableName: EXPERIMENTS_TABLE,
-      KeyConditionExpression: 'experimentId = :id',
-      ExpressionAttributeValues: {
-        ':id': id,
-      },
-      Limit: 1,
-      ScanIndexForward: false, // Get the latest version
+      Key: {
+        id: id,
+      }
     })
   );
 
-  if (!response.Items || response.Items.length === 0) {
+  if (!response.Item) {
     return null;
   }
 
   // Extract the experiment data from the DynamoDB item
-  const { experimentId, version, ...experimentData } = response.Items[0];
+  const { version, ...experimentData } = response.Item;
   return experimentData as Experiment;
 }
 
@@ -111,9 +107,12 @@ export async function listExperiments(
   };
 
   if (status) {
-    scanParams.FilterExpression = 'status = :status';
+    scanParams.FilterExpression = '#statusAttr = :status';
     scanParams.ExpressionAttributeValues = {
       ':status': status,
+    };
+    scanParams.ExpressionAttributeNames = {
+      '#statusAttr': 'status'
     };
   }
 
@@ -171,22 +170,19 @@ export async function updateExperiment(
 
   // Get the current version from DynamoDB
   const response = await docClient.send(
-    new QueryCommand({
+    new GetCommand({
       TableName: EXPERIMENTS_TABLE,
-      KeyConditionExpression: 'experimentId = :id',
-      ExpressionAttributeValues: {
-        ':id': id,
-      },
-      Limit: 1,
-      ScanIndexForward: false, // Get the latest version
+      Key: {
+        id: id,
+      }
     })
   );
 
-  if (!response.Items || response.Items.length === 0) {
+  if (!response.Item) {
     return null;
   }
 
-  const currentVersion = response.Items[0].version || 0;
+  const currentVersion = response.Item.version || 0;
   const newVersion = currentVersion + 1;
 
   // Save the updated experiment with a new version
@@ -194,7 +190,6 @@ export async function updateExperiment(
     new PutCommand({
       TableName: EXPERIMENTS_TABLE,
       Item: {
-        experimentId: id,
         version: newVersion,
         ...updatedExperiment,
       },
@@ -292,12 +287,13 @@ export async function getActiveExperimentsForUser(
 
   for (const experiment of experiments) {
     // Check if user should be included based on targetUserPercentage
-    // Using a hash of userId + experimentId for consistent assignment
-    const hash = hashString(`${userId}-${experiment.id}`);
+    // Using a hash of userId + sessionId + experimentId for variant assignment
+    // This ensures different sessions get different variants
+    const hash = hashString(`${userId}-${sessionId}-${experiment.id}`);
     const normalizedHash = hash % 100; // 0-99
 
     if (normalizedHash < experiment.targetUserPercentage) {
-      // Assign a variant - in this simple implementation, we'll use the hash to pick a variant
+      // Assign a variant - use the hash to pick a variant
       const variantIndex = hash % experiment.variants.length;
       const variant = experiment.variants[variantIndex];
 
@@ -377,13 +373,21 @@ export async function listReports(
   }
 
   if (status) {
-    filterExpressions.push('status = :status');
+    filterExpressions.push('#statusAttr = :status');
     expressionAttributeValues[':status'] = status;
   }
 
   if (filterExpressions.length > 0) {
     scanParams.FilterExpression = filterExpressions.join(' AND ');
     scanParams.ExpressionAttributeValues = expressionAttributeValues;
+    
+    // Add ExpressionAttributeNames if we're using status
+    if (status) {
+      if (!scanParams.ExpressionAttributeNames) {
+        scanParams.ExpressionAttributeNames = {};
+      }
+      scanParams.ExpressionAttributeNames['#statusAttr'] = 'status';
+    }
   }
 
   const response = await docClient.send(new ScanCommand(scanParams));

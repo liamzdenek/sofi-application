@@ -69,6 +69,23 @@ We have completed the project setup phase, backend implementation, and frontend 
   - Simplifying CloudFront distribution configuration
   - Adding handling for 403 errors in CloudFront
   - Increasing memory limit for S3 bucket deployment
+- Enhanced the SamplePage with improved user experience:
+  - Added session refresh button to demonstrate different experiment variants
+  - Pre-populated form fields for quicker testing
+  - Added auto-selection of the first available experiment
+  - Improved UI with informative notes and better styling
+- Fixed AWS Batch connectivity issues:
+  - Added public IP assignment to Fargate tasks
+  - Created security group with outbound internet access
+  - Granted ECR pull permissions to task execution role
+  - Used versioned resource names to handle immutable AWS Batch properties
+- Fixed experiment variant assignment bug:
+  - Modified the `getActiveExperimentsForUser` function to include session ID in variant assignment
+  - This ensures different sessions get different variants when refreshing
+- Improved UI loading states:
+  - Created a reusable LoadingScreen component with spinner and customizable message
+  - Updated all pages to use consistent loading screens
+  - Added proper loading states during data fetching operations
 
 ## Next Steps
 
@@ -197,3 +214,9 @@ Currently, the API is returning "Internal server error" for requests, which need
 
 5. ✅ How should we handle environment variables for the frontend in production?
    - We've set up the frontend to use environment variables at build time, which are injected during the deployment process.
+
+6. ✅ How should we configure AWS Batch for network connectivity?
+   - We've configured the Fargate tasks to use public IP addresses by setting `assignPublicIp: 'ENABLED'`
+   - Added explicit security group with outbound internet access
+   - Granted ECR pull permissions to the task execution role
+   - Created new AWS Batch resources with versioned names to avoid update issues

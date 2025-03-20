@@ -2,12 +2,11 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import express from 'express';
-import cors from 'cors';
 import experimentRoutes from './routes/experiments';
 import eventRoutes from './routes/events';
 import reportRoutes from './routes/reports';
 import { logger, handleError } from './lib/logger';
-import { requestLogger, validateEnvVars } from './lib/middleware';
+import { requestLogger, validateEnvVars, corsHeaders } from './lib/middleware';
 import serverless from 'serverless-http';
 
 // Validate required environment variables
@@ -37,7 +36,7 @@ try {
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(corsHeaders); // Apply CORS headers to all responses
 app.use(express.json());
 app.use(requestLogger);
 
@@ -133,6 +132,9 @@ export const handler = async (event: APIGatewayProxyEvent, context: Context): Pr
       statusCode: 500,
       headers: {
         'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
       },
       body: JSON.stringify({
         message: 'Internal server error',

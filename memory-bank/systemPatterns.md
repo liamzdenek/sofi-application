@@ -42,6 +42,11 @@ The Experimentation Platform Accelerator follows a simplified architecture with 
 - **API Gateway + Lambda**: Serverless API implementation
 - **Single-Table Design**: Optimized DynamoDB schema
 - **Event-Driven Architecture**: For report generation workflow
+- **AWS Batch Network Configuration**:
+  - Public subnets with public IP addresses for Fargate tasks
+  - Security groups with outbound internet access
+  - Explicit ECR pull permissions for task execution roles
+  - Versioned resource names (e.g., ComputeEnvironmentV2) to handle immutable properties
 
 ## Component Relationships
 

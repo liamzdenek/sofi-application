@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ExperimentApiClient, ReportMetadata, ReportData, Experiment } from '@sofi-application/shared';
+import { LoadingScreen } from '../components/LoadingScreen';
 import styles from './ReportsPage.module.css';
 
 // Get the API URL from environment variables with a localhost default
@@ -134,7 +135,7 @@ export function ReportsPage() {
         <div className={styles.reportsList}>
           <h2>Available Reports</h2>
           {loading && !reportData ? (
-            <div className={styles.loading}>Loading reports...</div>
+            <LoadingScreen message="Loading reports..." />
           ) : reports.length === 0 ? (
             <div className={styles.emptyState}>
               <p>No reports found. Generate a report to get started.</p>
@@ -176,7 +177,7 @@ export function ReportsPage() {
         <div className={styles.reportDetail}>
           {selectedReport ? (
             loading ? (
-              <div className={styles.loading}>Loading report data...</div>
+              <LoadingScreen message="Loading report data..." />
             ) : reportData ? (
               <div className={styles.reportContent}>
                 <h2>{reportData.experimentName}</h2>

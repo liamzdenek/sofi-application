@@ -129,10 +129,12 @@ export class ExperimentApiClient implements ExperimentApiClientInterface {
   async updateExperiment(
     request: UpdateExperimentRequest
   ): Promise<UpdateExperimentResponse> {
+    // Extract id from request and don't include it in the body
+    const { id, ...requestBody } = request;
     return this.request<UpdateExperimentResponse>(
-      `/experiments/${request.id}`,
+      `/experiments/${id}`,
       'PUT',
-      request
+      requestBody
     );
   }
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ExperimentApiClient, Experiment } from '@sofi-application/shared';
 import { CreateExperimentForm } from '../components/CreateExperimentForm';
+import { LoadingScreen } from '../components/LoadingScreen';
 import styles from './ExperimentsPage.module.css';
 
 // Get the API URL from environment variables with a localhost default
@@ -73,7 +74,7 @@ export function ExperimentsPage() {
       </div>
 
       {loading ? (
-        <div className={styles.loading}>Loading experiments...</div>
+        <LoadingScreen message="Loading experiments..." />
       ) : error ? (
         <div className={styles.error}>{error}</div>
       ) : (
