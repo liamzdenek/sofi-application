@@ -3,7 +3,7 @@ import { ExperimentApiClient } from '@sofi-application/experiment-api';
 import { GetActiveExperimentsResponse } from '@sofi-application/shared';
 
 // Get the API URL from environment variables with a localhost default
-const API_URL = process.env.REACT_APP_EXPERIMENTATION_API_URL || 'http://localhost:3000';
+const API_URL = process.env.VITE_EXPERIMENTATION_API_URL || process.env.REACT_APP_EXPERIMENTATION_API_URL || 'http://localhost:3000';
 
 /**
  * Hook to retrieve experiment configuration for a user

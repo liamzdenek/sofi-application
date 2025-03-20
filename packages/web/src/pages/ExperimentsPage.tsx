@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ExperimentApiClient, Experiment } from '@sofi-application/shared';
+import { CreateExperimentForm } from '../components/CreateExperimentForm';
 import styles from './ExperimentsPage.module.css';
 
 // Get the API URL from environment variables with a localhost default
-const API_URL = process.env.REACT_APP_EXPERIMENTATION_API_URL || 'http://localhost:3000';
+const API_URL = process.env.VITE_EXPERIMENTATION_API_URL || process.env.REACT_APP_EXPERIMENTATION_API_URL || 'http://localhost:3000';
 
 export function ExperimentsPage() {
   const [experiments, setExperiments] = useState<Experiment[]>([]);
@@ -12,25 +13,26 @@ export function ExperimentsPage() {
   const [selectedExperiment, setSelectedExperiment] = useState<Experiment | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
+  // Create a reusable function to fetch experiments
+  const fetchExperiments = useCallback(async () => {
+    try {
+      setLoading(true);
+      const apiClient = new ExperimentApiClient(API_URL);
+      const response = await apiClient.listExperiments();
+      setExperiments(response.experiments);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching experiments:', err);
+      setError('Failed to load experiments. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Fetch experiments on component mount
   useEffect(() => {
-    const fetchExperiments = async () => {
-      try {
-        setLoading(true);
-        const apiClient = new ExperimentApiClient(API_URL);
-        const response = await apiClient.listExperiments();
-        setExperiments(response.experiments);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching experiments:', err);
-        setError('Failed to load experiments. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchExperiments();
-  }, []);
+  }, [fetchExperiments]);
 
   // Function to handle experiment status change
   const handleStatusChange = async (experimentId: string, newStatus: 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'COMPLETED') => {
@@ -218,33 +220,17 @@ export function ExperimentsPage() {
         </div>
       )}
 
-      {/* For simplicity, we're not implementing the full create experiment form */}
+      {/* Create experiment modal */}
       {isCreating && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
-            <h2>Create New Experiment</h2>
-            <p>This is a placeholder for the experiment creation form.</p>
-            <p>In a real implementation, this would include fields for:</p>
-            <ul>
-              <li>Experiment name and description</li>
-              <li>Variant configuration</li>
-              <li>Target user percentage</li>
-              <li>Start and end dates</li>
-            </ul>
-            <div className={styles.modalActions}>
-              <button 
-                className={styles.cancelButton}
-                onClick={() => setIsCreating(false)}
-              >
-                Cancel
-              </button>
-              <button 
-                className={styles.createButton}
-                onClick={() => setIsCreating(false)}
-              >
-                Create Experiment
-              </button>
-            </div>
+            <CreateExperimentForm
+              onClose={() => setIsCreating(false)}
+              onSuccess={() => {
+                setIsCreating(false);
+                fetchExperiments();
+              }}
+            />
           </div>
         </div>
       )}

@@ -43,8 +43,12 @@ export default defineConfig(({ mode }) => {
 
     // Define environment variables to be replaced in the client code
     define: {
+      'process.env.VITE_EXPERIMENTATION_API_URL': JSON.stringify(
+        env.VITE_EXPERIMENTATION_API_URL || env.REACT_APP_EXPERIMENTATION_API_URL || 'http://localhost:3000'
+      ),
+      // For backward compatibility
       'process.env.REACT_APP_EXPERIMENTATION_API_URL': JSON.stringify(
-        env.REACT_APP_EXPERIMENTATION_API_URL || 'http://localhost:3000'
+        env.VITE_EXPERIMENTATION_API_URL || env.REACT_APP_EXPERIMENTATION_API_URL || 'http://localhost:3000'
       ),
     },
   };

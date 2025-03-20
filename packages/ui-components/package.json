@@ -1,0 +1,10 @@
+{
+  "name": "@sofi-application/ui-components",
+  "version": "0.0.1",
+  "dependencies": {
+    "@sofi-application/shared": "*",
+    "@sofi-application/experiment-api": "*",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  }
+}

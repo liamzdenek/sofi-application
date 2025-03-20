@@ -1,5 +1,5 @@
 {
-  "name": "web-web",
+  "name": "web",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/web/src",
   "projectType": "application",
@@ -25,15 +25,15 @@
       "executor": "@nx/vite:dev-server",
       "defaultConfiguration": "development",
       "options": {
-        "buildTarget": "web-web:build"
+        "buildTarget": "web:build"
       },
       "configurations": {
         "development": {
-          "buildTarget": "web-web:build:development",
+          "buildTarget": "web:build:development",
           "hmr": true
         },
         "production": {
-          "buildTarget": "web-web:build:production",
+          "buildTarget": "web:build:production",
           "hmr": false
         }
       }
@@ -42,14 +42,14 @@
       "executor": "@nx/vite:preview-server",
       "defaultConfiguration": "development",
       "options": {
-        "buildTarget": "web-web:build"
+        "buildTarget": "web:build"
       },
       "configurations": {
         "development": {
-          "buildTarget": "web-web:build:development"
+          "buildTarget": "web:build:development"
         },
         "production": {
-          "buildTarget": "web-web:build:production"
+          "buildTarget": "web:build:production"
         }
       }
     },

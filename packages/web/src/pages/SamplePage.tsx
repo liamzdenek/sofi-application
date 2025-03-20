@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   ExperimentVariant,
   useExperiment,
   useExperimentEvent
 } from '@sofi-application/ui-components';
+import { ExperimentSelector } from '../components/ExperimentSelector';
+import { ExperimentApiClient, Experiment } from '@sofi-application/shared';
 import styles from './SamplePage.module.css';
+
+// Get the API URL from environment variables with a localhost default
+const API_URL = process.env.VITE_EXPERIMENTATION_API_URL || process.env.REACT_APP_EXPERIMENTATION_API_URL || 'http://localhost:3000';
 
 export function SamplePage() {
   const [cartItems, setCartItems] = useState([
@@ -12,19 +17,45 @@ export function SamplePage() {
     { id: 2, name: 'Wireless Keyboard', price: 89.99, quantity: 1 },
   ]);
   const [checkoutComplete, setCheckoutComplete] = useState(false);
+  const [selectedExperimentId, setSelectedExperimentId] = useState<string | null>(null);
+  const [availableExperiments, setAvailableExperiments] = useState<Experiment[]>([]);
+  const [loading, setLoading] = useState(true);
   
   // For demo purposes, we'll use a fixed user ID and session ID
   const userId = 'user-123';
   const sessionId = 'session-456';
   
-  // Use the experiment hook to get experiment data
+  // Use the experiment hook to get experiment data for the current user
   const { experiments } = useExperiment(userId, sessionId);
   
   // Use the experiment event hook to record events
   const { recordEvent } = useExperimentEvent(userId, sessionId);
   
+  // Fetch all active experiments for the selector
+  useEffect(() => {
+    const fetchExperiments = async () => {
+      try {
+        setLoading(true);
+        const apiClient = new ExperimentApiClient(API_URL);
+        const response = await apiClient.listExperiments({ status: 'ACTIVE' });
+        setAvailableExperiments(response.experiments);
+      } catch (err) {
+        console.error('Error fetching experiments:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExperiments();
+  }, []);
+  
   // Calculate the total price
   const totalPrice = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+  
+  // Handle experiment selection
+  const handleSelectExperiment = useCallback((experimentId: string) => {
+    setSelectedExperimentId(experimentId);
+  }, []);
   
   // Handle checkout button click
   const handleCheckout = (experimentId: string, variantId: string) => {
@@ -38,13 +69,16 @@ export function SamplePage() {
     setCheckoutComplete(true);
   };
   
-  // Find the button color experiment
-  const buttonColorExperiment = experiments.find(exp => exp.experimentId === 'button-color-experiment');
+  // Find the selected experiment from available experiments
+  const selectedExperiment = availableExperiments.find(exp => exp.id === selectedExperimentId);
+  
+  // Find the assigned variant for the selected experiment
+  const assignedVariant = experiments.find(exp => exp.experimentId === selectedExperimentId);
   
   // Get the button color from the experiment or use a default
   const getButtonColor = () => {
-    if (buttonColorExperiment) {
-      return buttonColorExperiment.config.buttonColor || '#3498db';
+    if (selectedExperiment && assignedVariant && assignedVariant.config.buttonColor) {
+      return assignedVariant.config.buttonColor;
     }
     return '#3498db'; // Default blue
   };
@@ -53,8 +87,14 @@ export function SamplePage() {
     <div className={styles.container}>
       <h1 className={styles.title}>Sample Checkout Page</h1>
       <p className={styles.description}>
-        This page demonstrates an experiment that tests different button colors for the checkout button.
+        This page demonstrates how experiments can be applied to a checkout flow.
+        Select an experiment below to see it in action.
       </p>
+      
+      <ExperimentSelector
+        onSelectExperiment={handleSelectExperiment}
+        selectedExperimentId={selectedExperimentId}
+      />
       
       {checkoutComplete ? (
         <div className={styles.successMessage}>
@@ -158,59 +198,58 @@ export function SamplePage() {
               </div>
             </div>
             
-            {/* Experiment: Button Color */}
-            <ExperimentVariant
-              experimentId="button-color-experiment"
-              userId={userId}
-              sessionId={sessionId}
-              variants={{
-                'control': (
-                  <button 
+            {/* Experiment Variant */}
+            {selectedExperimentId ? (
+              <ExperimentVariant
+                experimentId={selectedExperimentId}
+                userId={userId}
+                sessionId={sessionId}
+                variants={{
+                  // Dynamically generate variants based on the selected experiment
+                  ...(selectedExperiment?.variants || []).reduce((acc: Record<string, React.ReactNode>, variant) => ({
+                    ...acc,
+                    [variant.id]: (
+                      <button
+                        className={styles.checkoutButton}
+                        style={{
+                          backgroundColor: variant.config.buttonColor || '#3498db'
+                        }}
+                        onClick={() => handleCheckout(selectedExperimentId, variant.id)}
+                      >
+                        Complete Checkout
+                      </button>
+                    )
+                  }), {})
+                }}
+                fallback={
+                  <button
                     className={styles.checkoutButton}
-                    style={{ backgroundColor: '#3498db' }} // Blue
-                    onClick={() => handleCheckout('button-color-experiment', 'control')}
+                    style={{ backgroundColor: getButtonColor() }}
+                    onClick={() => {
+                      if (assignedVariant) {
+                        handleCheckout(
+                          selectedExperimentId,
+                          assignedVariant.variantId
+                        );
+                      } else {
+                        setCheckoutComplete(true);
+                      }
+                    }}
                   >
                     Complete Checkout
                   </button>
-                ),
-                'variant-1': (
-                  <button 
-                    className={styles.checkoutButton}
-                    style={{ backgroundColor: '#27ae60' }} // Green
-                    onClick={() => handleCheckout('button-color-experiment', 'variant-1')}
-                  >
-                    Complete Checkout
-                  </button>
-                ),
-                'variant-2': (
-                  <button 
-                    className={styles.checkoutButton}
-                    style={{ backgroundColor: '#e74c3c' }} // Red
-                    onClick={() => handleCheckout('button-color-experiment', 'variant-2')}
-                  >
-                    Complete Checkout
-                  </button>
-                ),
-              }}
-              fallback={
-                <button 
-                  className={styles.checkoutButton}
-                  style={{ backgroundColor: getButtonColor() }}
-                  onClick={() => {
-                    if (buttonColorExperiment) {
-                      handleCheckout(
-                        buttonColorExperiment.experimentId, 
-                        buttonColorExperiment.variantId
-                      );
-                    } else {
-                      setCheckoutComplete(true);
-                    }
-                  }}
-                >
-                  Complete Checkout
-                </button>
-              }
-            />
+                }
+              />
+            ) : (
+              <button
+                className={styles.checkoutButton}
+                style={{ backgroundColor: '#3498db' }}
+                onClick={() => setCheckoutComplete(true)}
+                disabled={!selectedExperimentId}
+              >
+                Complete Checkout
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -223,13 +262,13 @@ export function SamplePage() {
         </p>
         <p>
           Current experiment status:
-          {buttonColorExperiment ? (
+          {assignedVariant ? (
             <span className={styles.experimentActive}>
-              Active - You're seeing variant: {buttonColorExperiment.variantId}
+              Active - You're seeing variant: {assignedVariant.variantId}
             </span>
           ) : (
             <span className={styles.experimentInactive}>
-              Inactive - No experiment is currently running
+              {selectedExperimentId ? 'Waiting for assignment...' : 'No experiment selected'}
             </span>
           )}
         </p>
