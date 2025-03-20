@@ -1,95 +1,261 @@
-# SofiApplication
+# Experimentation Platform Accelerator
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+A lightweight, cloud-native platform for rapid testing and validation of new features through A/B testing.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+![Experimentation Platform](https://via.placeholder.com/800x400?text=Experimentation+Platform)
 
-Run `npx nx graph` to visually explore what got created. Now, let's get you up to speed!
+## Overview
 
-## Run tasks
+The Experimentation Platform Accelerator enables rapid testing and validation of new features through a structured approach to A/B testing. This platform addresses the challenge of innovation agility in modern organizations by providing a framework for data-driven decision making.
 
-To run tasks with Nx use:
+### Key Features
 
-```sh
-npx nx <target> <project-name>
+- **Simple Experiment Setup**: Create and manage A/B tests with multiple variants
+- **Event Tracking**: Collect user interaction data for analysis
+- **Statistical Analysis**: Generate reports with conversion rates, improvement percentages, and statistical significance
+- **Sample Implementation**: Demonstrate experiments in action on a sample page
+- **Cloud-Native Architecture**: Fully deployable to AWS with serverless components
+
+## Architecture
+
+The platform follows a simplified architecture with these core components:
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│                 │     │                 │     │                 │
+│  Web Interface  │────▶│   API Service   │────▶│    DynamoDB     │
+│  (React + TS)   │     │ (API Gateway +  │     │  (Experiments,  │
+│                 │◀────│     Lambda)     │◀────│ Events, Reports) │
+└─────────────────┘     └────────┬────────┘     └─────────────────┘
+                                 │
+                                 ▼
+                        ┌─────────────────┐     ┌─────────────────┐
+                        │                 │     │                 │
+                        │   AWS Batch     │────▶│       S3        │
+                        │  (Java Report   │     │ (JSON Reports)  │
+                        │   Generator)    │     │                 │
+                        └─────────────────┘     └─────────────────┘
 ```
 
-For example:
+## Technologies Used
 
-```sh
-npx nx build myproject
+### Frontend
+- **React**: For building the user interface
+- **TypeScript**: For type-safe code
+- **CSS Modules**: For component styling
+- **NX**: For monorepo management and build tooling
+
+### Backend
+- **AWS Lambda**: For serverless API implementation
+- **API Gateway**: For API management
+- **DynamoDB**: For data storage
+- **AWS Batch**: For report generation
+- **S3**: For storing generated reports
+- **AWS CDK**: For infrastructure as code
+
+### Languages
+- **TypeScript**: For frontend and Lambda functions
+- **Java**: For AWS Batch report generation job
+
+## Project Structure
+
+```
+sofi-application/
+├── packages/                # All monorepo packages go here
+│   ├── web/                 # React web application
+│   ├── api/                 # API Lambda functions
+│   ├── shared/              # Shared types and utilities
+│   ├── experiment-api/      # API client for experiment service
+│   ├── ui-components/       # Reusable UI components
+│   ├── report-generator/    # Java report generation tool
+│   └── infrastructure/      # CDK infrastructure code
+├── memory-bank/             # Project documentation
+└── .clinerules              # Project-specific rules and patterns
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+## Getting Started
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Prerequisites
 
-## Add new projects
+- Node.js (latest LTS version)
+- Java Development Kit (JDK) 11+
+- AWS CLI configured with appropriate credentials
+- NX CLI installed globally
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+### Installation
 
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
+1. Clone the repository
+   ```bash
+   git clone <repository-url>
+   cd sofi-application
+   ```
+
+2. Install dependencies
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables
+   - Create `.env.development` files in the `packages/api` and `packages/web` directories
+   - See the example environment variables in the Technical Context documentation
+
+## Local Development
+
+### Running the API
+
+```bash
+npx nx serve api
 ```
 
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
+The API will be available at http://localhost:3333/api
 
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
+### Running the Web Application
 
-# Generate a library
-npx nx g @nx/react:lib some-lib
+```bash
+npx nx serve web
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+The web application will be available at http://localhost:4200
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Testing the Report Generator Locally
 
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
+```bash
+cd packages/report-generator
+gradle shadowJar
+JOB_PARAMETERS='{"experimentId":"your-experiment-id","reportId":"your-report-id","timeRange":{"start":"2025-02-18T18:43:41.700Z","end":"2025-03-20T18:43:41.700Z"},"outputBucket":"your-bucket-name","outputKey":"reports/your-experiment-id/your-report-id.json"}' AWS_PROFILE=your-profile AWS_REGION=us-west-2 java -jar build/libs/report-generator.jar
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+See the [Local Testing Guide](memory-bank/local-testing.md) for more details.
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Deployment
 
-### Step 2
+The application can be deployed to AWS using the CDK infrastructure code.
 
-Use the following command to configure a CI workflow for your workspace:
+### Building and Deploying the Report Generator
 
-```sh
-npx nx g ci-workflow
+```bash
+npx nx run infrastructure:build-report-generator
 ```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Deploying the Entire Application
 
-## Install Nx Console
+```bash
+npx nx run infrastructure:deploy
+```
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+This will:
+1. Build the API
+2. Build the web application
+3. Build and deploy the report generator Docker image to ECR
+4. Deploy the CDK stack with all AWS resources
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## API Documentation
 
-## Useful links
+The API provides endpoints for:
 
-Learn more:
+1. **Experiment Management**: Create, update, and retrieve experiments
+2. **Event Collection**: Record user interactions with experiments
+3. **Experiment Assignment**: Get active experiments for a user
+4. **Report Management**: Generate and retrieve reports
 
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Detailed API contracts are documented in [api-contracts.md](memory-bank/api-contracts.md).
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Usage Example
+
+### Creating an Experiment
+
+```typescript
+// Example of creating a button color experiment
+const createExperimentRequest = {
+  name: "Button Color Test",
+  description: "Testing impact of button color on conversion",
+  variants: [
+    {
+      name: "Control",
+      config: { buttonColor: "blue" }
+    },
+    {
+      name: "Treatment",
+      config: { buttonColor: "green" }
+    }
+  ],
+  targetUserPercentage: 100
+};
+```
+
+### Implementing an Experiment in a React Component
+
+```tsx
+import { useExperiment } from '@sofi-application/ui-components';
+import { useExperimentEvent } from '@sofi-application/ui-components';
+
+function CheckoutButton() {
+  const { variant } = useExperiment('button-color-test');
+  const trackEvent = useExperimentEvent();
+  
+  const buttonColor = variant?.config?.buttonColor || 'blue';
+  
+  const handleClick = () => {
+    trackEvent('BUTTON_CLICK');
+    // Process checkout
+  };
+  
+  return (
+    <button 
+      style={{ backgroundColor: buttonColor }}
+      onClick={handleClick}
+    >
+      Complete Checkout
+    </button>
+  );
+}
+```
+
+## Project Status
+
+The project is currently in the testing and deployment phase, with approximately 99% of the implementation completed. The application has been successfully deployed to AWS with the following endpoints:
+
+- API: https://a9wkrb830e.execute-api.us-west-2.amazonaws.com/api/
+- Web: https://dy6twvdgk8blk.cloudfront.net
+
+## Implementation Rules
+
+This project follows specific implementation rules:
+
+1. **12-Factor App**: Implemented as a cloud-native application
+   - Environment variables for configuration
+   - Externalized configuration
+   - Backing services as attached resources
+
+2. **AWS Resource Configuration**:
+   - AWS resource locations/ARNs passed through environment variables
+   - Frontend environment variables available at build time
+
+3. **Error Handling**:
+   - No fallback implementation
+   - Main path works or fails with proper logging
+   - Fail fast and explicitly
+
+4. **Build and Development**:
+   - NX monorepo with all packages inside a `packages` directory
+   - TypeScript by default
+   - CSS modules for styling
+   - Automated Docker image building and deployment
+
+5. **Infrastructure**:
+   - AWS-focused infrastructure
+   - CDK for deployment
+   - NodejsFunction primitive in CDK
+
+For more details, see the [System Patterns](memory-bank/systemPatterns.md) documentation.
+
+## Contributing
+
+1. Follow the implementation rules defined in the project
+2. Ensure type safety throughout the application
+3. Write unit tests for critical functionality
+4. Maintain the project structure and organization
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
