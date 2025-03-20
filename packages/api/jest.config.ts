@@ -7,4 +7,5 @@ export default {
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory: '../../coverage/packages/api',
+  setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
 };

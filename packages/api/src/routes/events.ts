@@ -1,11 +1,31 @@
 import express from 'express';
 import { recordEvent, batchRecordEvents } from '../lib/dynamodb';
 import { logger, handleError } from '../lib/logger';
+import { validateRequest } from '../lib/middleware';
+import { recordEventSchema, batchRecordEventsSchema } from '../lib/validation';
 
 const router = express.Router();
 
-// Record a single event
-router.post('/', async (req, res) => {
+/**
+ * @api {post} /events Record a single event
+ * @apiName RecordEvent
+ * @apiGroup Events
+ * @apiDescription Record a single experiment event
+ *
+ * @apiParam {String} experimentId Experiment identifier
+ * @apiParam {String} variantId Variant identifier
+ * @apiParam {String} userId User identifier
+ * @apiParam {String} sessionId Session identifier
+ * @apiParam {String} action Event action (e.g., 'PAGE_VIEW', 'BUTTON_CLICK')
+ * @apiParam {Object} [metadata] Optional additional event data
+ *
+ * @apiSuccess {Boolean} success Indicates if the event was recorded successfully
+ * @apiSuccess {String} eventId The generated event ID
+ *
+ * @apiError (400) BadRequest Missing or invalid required fields
+ * @apiError (500) ServerError Failed to record event
+ */
+router.post('/', validateRequest(recordEventSchema), async (req, res) => {
   try {
     const {
       experimentId,
@@ -15,13 +35,6 @@ router.post('/', async (req, res) => {
       action,
       metadata,
     } = req.body;
-
-    // Validate required fields
-    if (!experimentId || !variantId || !userId || !sessionId || !action) {
-      return res.status(400).json({
-        message: 'Missing required fields',
-      });
-    }
 
     const eventId = await recordEvent(
       experimentId,
@@ -46,27 +59,29 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Batch record events
-router.post('/batch', async (req, res) => {
+/**
+ * @api {post} /events/batch Batch record events
+ * @apiName BatchRecordEvents
+ * @apiGroup Events
+ * @apiDescription Record multiple experiment events in a single request
+ *
+ * @apiParam {Array} events Array of event objects
+ * @apiParam {String} events.experimentId Experiment identifier
+ * @apiParam {String} events.variantId Variant identifier
+ * @apiParam {String} events.userId User identifier
+ * @apiParam {String} events.sessionId Session identifier
+ * @apiParam {String} events.action Event action
+ * @apiParam {Object} [events.metadata] Optional additional event data
+ *
+ * @apiSuccess {Boolean} success Indicates if the events were recorded successfully
+ * @apiSuccess {Array} eventIds Array of generated event IDs
+ *
+ * @apiError (400) BadRequest Missing or invalid events array
+ * @apiError (500) ServerError Failed to batch record events
+ */
+router.post('/batch', validateRequest(batchRecordEventsSchema), async (req, res) => {
   try {
     const { events } = req.body;
-
-    if (!events || !Array.isArray(events) || events.length === 0) {
-      return res.status(400).json({
-        message: 'Missing or invalid events array',
-      });
-    }
-
-    // Validate each event
-    for (const event of events) {
-      const { experimentId, variantId, userId, sessionId, action } = event;
-      if (!experimentId || !variantId || !userId || !sessionId || !action) {
-        return res.status(400).json({
-          message: 'Missing required fields in one or more events',
-        });
-      }
-    }
-
     const eventIds = await batchRecordEvents(events);
 
     res.status(201).json({

@@ -7,11 +7,30 @@ import {
   getActiveExperimentsForUser,
 } from '../lib/dynamodb';
 import { logger, handleError } from '../lib/logger';
+import { validateRequest } from '../lib/middleware';
+import { createExperimentSchema, updateExperimentSchema } from '../lib/validation';
 
 const router = express.Router();
 
-// Create experiment
-router.post('/', async (req, res) => {
+/**
+ * @api {post} /experiments Create a new experiment
+ * @apiName CreateExperiment
+ * @apiGroup Experiments
+ * @apiDescription Creates a new experiment with the provided details
+ *
+ * @apiParam {String} name Name of the experiment
+ * @apiParam {String} description Description of the experiment
+ * @apiParam {Array} variants Array of variant objects (without IDs)
+ * @apiParam {Number} targetUserPercentage Percentage of users to include (1-100)
+ * @apiParam {String} [startDate] Optional ISO date string for experiment start
+ * @apiParam {String} [endDate] Optional ISO date string for experiment end
+ *
+ * @apiSuccess {Object} experiment The created experiment object
+ *
+ * @apiError (400) BadRequest Missing or invalid required fields
+ * @apiError (500) ServerError Failed to create experiment
+ */
+router.post('/', validateRequest(createExperimentSchema), async (req, res) => {
   try {
     const {
       name,
@@ -21,13 +40,6 @@ router.post('/', async (req, res) => {
       startDate,
       endDate,
     } = req.body;
-
-    // Validate required fields
-    if (!name || !description || !variants || !targetUserPercentage) {
-      return res.status(400).json({
-        message: 'Missing required fields',
-      });
-    }
 
     const experiment = await createExperiment(
       name,
@@ -52,7 +64,21 @@ router.post('/', async (req, res) => {
   }
 });
 
-// List experiments
+/**
+ * @api {get} /experiments List experiments
+ * @apiName ListExperiments
+ * @apiGroup Experiments
+ * @apiDescription Get a list of experiments with optional filtering
+ *
+ * @apiParam {String} [status] Filter by experiment status
+ * @apiParam {Number} [limit] Maximum number of experiments to return
+ * @apiParam {Number} [offset] Number of experiments to skip
+ *
+ * @apiSuccess {Array} experiments List of experiment objects
+ * @apiSuccess {Number} total Total number of experiments matching the criteria
+ *
+ * @apiError (500) ServerError Failed to list experiments
+ */
 router.get('/', async (req, res) => {
   try {
     const { status, limit, offset } = req.query;
@@ -77,8 +103,20 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get active experiments for user
-// This route must be defined before the /:id route
+/**
+ * @api {get} /experiments/active Get active experiments for user
+ * @apiName GetActiveExperiments
+ * @apiGroup Experiments
+ * @apiDescription Get active experiments assigned to a specific user
+ *
+ * @apiParam {String} userId User identifier
+ * @apiParam {String} sessionId Session identifier
+ *
+ * @apiSuccess {Array} experiments List of active experiments with variant assignments
+ *
+ * @apiError (400) BadRequest Missing required query parameters
+ * @apiError (500) ServerError Failed to get active experiments
+ */
 router.get('/active', async (req, res) => {
   try {
     const { userId, sessionId } = req.query;
@@ -107,7 +145,19 @@ router.get('/active', async (req, res) => {
   }
 });
 
-// Get experiment by ID
+/**
+ * @api {get} /experiments/:id Get experiment by ID
+ * @apiName GetExperiment
+ * @apiGroup Experiments
+ * @apiDescription Get detailed information about a specific experiment
+ *
+ * @apiParam {String} id Experiment identifier
+ *
+ * @apiSuccess {Object} experiment The experiment object
+ *
+ * @apiError (404) NotFound Experiment not found
+ * @apiError (500) ServerError Failed to get experiment
+ */
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -132,8 +182,28 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Update experiment
-router.put('/:id', async (req, res) => {
+/**
+ * @api {put} /experiments/:id Update experiment
+ * @apiName UpdateExperiment
+ * @apiGroup Experiments
+ * @apiDescription Update an existing experiment
+ *
+ * @apiParam {String} id Experiment identifier
+ * @apiParam {String} [name] Updated name
+ * @apiParam {String} [description] Updated description
+ * @apiParam {String} [status] Updated status (DRAFT, ACTIVE, PAUSED, COMPLETED)
+ * @apiParam {Array} [variants] Updated variants array
+ * @apiParam {Number} [targetUserPercentage] Updated target user percentage
+ * @apiParam {String} [startDate] Updated start date
+ * @apiParam {String} [endDate] Updated end date
+ *
+ * @apiSuccess {Object} experiment The updated experiment object
+ *
+ * @apiError (400) BadRequest Invalid update parameters
+ * @apiError (404) NotFound Experiment not found
+ * @apiError (500) ServerError Failed to update experiment
+ */
+router.put('/:id', validateRequest(updateExperimentSchema), async (req, res) => {
   try {
     const { id } = req.params;
     const {

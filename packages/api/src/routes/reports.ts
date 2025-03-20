@@ -9,6 +9,8 @@ import {
 } from '../lib/dynamodb';
 import { ReportJobParameters } from '@sofi-application/shared';
 import { logger, handleError } from '../lib/logger';
+import { validateRequest } from '../lib/middleware';
+import { generateReportSchema, updateReportStatusSchema } from '../lib/validation';
 
 const router = express.Router();
 
@@ -38,16 +40,26 @@ if (!BATCH_JOB_QUEUE || !BATCH_JOB_DEFINITION || !S3_REPORTS_BUCKET) {
   );
 }
 
-// Generate a report
-router.post('/', async (req, res) => {
+/**
+ * @api {post} /reports Generate a new report
+ * @apiName GenerateReport
+ * @apiGroup Reports
+ * @apiDescription Generate a new report for an experiment
+ *
+ * @apiParam {String} experimentId Experiment identifier
+ * @apiParam {Object} [timeRange] Optional time range for the report
+ * @apiParam {String} timeRange.start Start date (ISO format)
+ * @apiParam {String} timeRange.end End date (ISO format)
+ *
+ * @apiSuccess {String} reportId The generated report ID
+ * @apiSuccess {String} status Initial report status (PENDING)
+ *
+ * @apiError (400) BadRequest Missing or invalid required fields
+ * @apiError (500) ServerError Failed to generate report
+ */
+router.post('/', validateRequest(generateReportSchema), async (req, res) => {
   try {
     const { experimentId, timeRange } = req.body;
-
-    if (!experimentId) {
-      return res.status(400).json({
-        message: 'Missing required field: experimentId',
-      });
-    }
 
     // Create report metadata
     const reportMetadata = await createReportMetadata(experimentId);
@@ -96,7 +108,19 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Get report metadata
+/**
+ * @api {get} /reports/:id Get report metadata
+ * @apiName GetReport
+ * @apiGroup Reports
+ * @apiDescription Get metadata for a specific report
+ *
+ * @apiParam {String} id Report identifier
+ *
+ * @apiSuccess {Object} report The report metadata object
+ *
+ * @apiError (404) NotFound Report not found
+ * @apiError (500) ServerError Failed to get report
+ */
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -121,7 +145,22 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// List reports
+/**
+ * @api {get} /reports List reports
+ * @apiName ListReports
+ * @apiGroup Reports
+ * @apiDescription Get a list of reports with optional filtering
+ *
+ * @apiParam {String} [experimentId] Filter by experiment ID
+ * @apiParam {String} [status] Filter by report status
+ * @apiParam {Number} [limit] Maximum number of reports to return
+ * @apiParam {Number} [offset] Number of reports to skip
+ *
+ * @apiSuccess {Array} reports List of report metadata objects
+ * @apiSuccess {Number} total Total number of reports matching the criteria
+ *
+ * @apiError (500) ServerError Failed to list reports
+ */
 router.get('/', async (req, res) => {
   try {
     const { experimentId, status, limit, offset } = req.query;
@@ -147,7 +186,20 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get report data
+/**
+ * @api {get} /reports/:id/data Get report data
+ * @apiName GetReportData
+ * @apiGroup Reports
+ * @apiDescription Get the full data for a completed report
+ *
+ * @apiParam {String} id Report identifier
+ *
+ * @apiSuccess {Object} reportData The full report data object
+ *
+ * @apiError (400) BadRequest Report is not in COMPLETED status
+ * @apiError (404) NotFound Report not found or data not found in S3
+ * @apiError (500) ServerError Failed to get report data
+ */
 router.get('/:id/data', async (req, res) => {
   try {
     const { id } = req.params;
@@ -196,17 +248,26 @@ router.get('/:id/data', async (req, res) => {
   }
 });
 
-// Update report status (internal endpoint, not exposed in API contracts)
-router.put('/:id/status', async (req, res) => {
+/**
+ * @api {put} /reports/:id/status Update report status
+ * @apiName UpdateReportStatus
+ * @apiGroup Reports
+ * @apiDescription Update the status of a report (internal endpoint)
+ *
+ * @apiParam {String} id Report identifier
+ * @apiParam {String} status New report status
+ * @apiParam {Object} [metrics] Optional report metrics
+ *
+ * @apiSuccess {Object} report The updated report metadata
+ *
+ * @apiError (400) BadRequest Missing required fields
+ * @apiError (404) NotFound Report not found
+ * @apiError (500) ServerError Failed to update report status
+ */
+router.put('/:id/status', validateRequest(updateReportStatusSchema), async (req, res) => {
   try {
     const { id } = req.params;
     const { status, metrics } = req.body;
-
-    if (!status) {
-      return res.status(400).json({
-        message: 'Missing required field: status',
-      });
-    }
 
     const updatedReport = await updateReportStatus(id, status, metrics);
 
