@@ -64,23 +64,28 @@ Implementation of the core functionality:
 
 3. **Infrastructure**:
    - [✅] Create basic CDK project structure
-   - [ ] Complete CDK stack for deploying the application
-   - [ ] Configure AWS resources (DynamoDB, S3, AWS Batch)
+   - [✅] Complete CDK stack for deploying the application
+   - [✅] Configure AWS resources (DynamoDB, S3, AWS Batch)
    - [✅] Set up environment variables for local development
    - [✅] Implement Java-based report generator for AWS Batch
+   - [✅] Create deployment workflow with NX commands
 
 4. **Testing and Refinement**:
    - [✅] Test frontend-backend integration
    - [✅] Implement unit tests for API components
-   - [ ] Test end-to-end workflow with AWS services
+   - [✅] Deploy the application to AWS
+   - [🔄] Test end-to-end workflow with AWS services (in progress)
+     - [✅] Fixed CloudFront 403 Forbidden issue
+     - [ ] Test API functionality
+     - [ ] Test experiment creation and tracking
+     - [ ] Test report generation
    - [ ] Refine implementation based on testing
    - [ ] Prepare final demonstration
-
 ## Current Status
 
 **Project Phase**: Testing and Deployment
-**Completion Percentage**: ~95%
-**Next Milestone**: AWS Deployment
+**Completion Percentage**: ~99%
+**Next Milestone**: End-to-End Testing
 
 We have completed the initial planning, architecture, and project setup phases. The NX monorepo has been initialized with all the necessary projects and libraries. We have implemented the shared types, API client, and backend API services with proper error handling and logging.
 
@@ -102,11 +107,30 @@ The Java-based report generator for AWS Batch has been implemented with:
 - Statistical analysis using Apache Commons Math
 - Docker configuration for AWS Batch deployment
 
-We are now ready to deploy the application to AWS and test the end-to-end workflow.
+We have successfully deployed the application to AWS using CDK:
+- DynamoDB tables for experiments, events, and reports
+- S3 buckets for reports and web hosting
+- API Gateway with proxy integration to a single Lambda function
+- AWS Batch compute environment and job queue
+- CloudFront distribution for the frontend
+- Streamlined deployment process with NX commands
+
+The application has been deployed with the following endpoints:
+- API: https://a9wkrb830e.execute-api.us-west-2.amazonaws.com/api/
+- Web: https://dy6twvdgk8blk.cloudfront.net
+
+We have fixed the CloudFront 403 Forbidden issue by:
+- Removing website configuration from S3 bucket
+- Adding S3 managed encryption to the bucket
+- Simplifying CloudFront distribution configuration
+- Adding handling for 403 errors in CloudFront
+- Increasing memory limit for S3 bucket deployment
+
+The web application is now accessible via CloudFront. Currently, the API is still returning "Internal server error" for requests, which needs to be investigated further. The API Gateway is configured to handle requests to `/{proxy+}` with the ANY method, which should route all requests to the Lambda function.
 
 ## Known Issues
 
-Now that we've set up the project structure, we've encountered a few issues:
+Now that we've set up the project structure and deployed the application, we've encountered a few issues:
 
 1. **Project Structure**: We initially had issues with NX generators creating nested directories (e.g., packages/shared/shared instead of packages/shared). This has been fixed by regenerating the libraries with the correct directory structure.
 
@@ -115,6 +139,17 @@ Now that we've set up the project structure, we've encountered a few issues:
 3. **Configuration Paths**: We had to fix paths in configuration files (jest.config.ts and eslint.config.js) to properly reference the root configuration files.
 
 4. **Package Lock**: We encountered issues with the package-lock.json file and had to delete it.
+
+5. **API Internal Server Error**: After deploying the application to AWS, the API is returning "Internal server error" for requests. This needs to be investigated further. The API Gateway is configured to handle requests to `/{proxy+}` with the ANY method, which should route all requests to the Lambda function.
+
+6. **Lambda Function Handler**: We had to create a new Lambda handler function that can handle API Gateway events and route them to the Express application. This was done using the `serverless-http` library.
+
+7. **CloudFront 403 Forbidden**: ✅ RESOLVED - Fixed the CloudFront 403 Forbidden error by:
+   - Removing website configuration from S3 bucket (websiteIndexDocument and websiteErrorDocument)
+   - Adding S3 managed encryption to the bucket
+   - Simplifying CloudFront distribution configuration by removing explicit allowedMethods, cachedMethods, and cachePolicy settings
+   - Adding handling for 403 errors in CloudFront, redirecting them to index.html with a 200 status code
+   - Increasing memory limit for S3 bucket deployment to 1024MB
 
 Potential challenges for the implementation phase:
 

@@ -63,6 +63,12 @@ We have completed the project setup phase, backend implementation, and frontend 
   - Created Docker configuration for AWS Batch deployment
   - Fixed issues with DynamoDB query expressions
   - Temporarily disabled tests for future implementation
+- Fixed CloudFront 403 Forbidden error by:
+  - Removing website configuration from S3 bucket
+  - Adding S3 managed encryption to the bucket
+  - Simplifying CloudFront distribution configuration
+  - Adding handling for 403 errors in CloudFront
+  - Increasing memory limit for S3 bucket deployment
 
 ## Next Steps
 
@@ -80,10 +86,11 @@ We have completed the project setup phase, backend implementation, and frontend 
    - ✅ Implement reusable UI components in the ui-components library
 
 3. **Develop Infrastructure**:
-   - Complete CDK stack for deploying the application
-   - Configure AWS resources (DynamoDB, S3, AWS Batch)
+   - ✅ Complete CDK stack for deploying the application
+   - ✅ Configure AWS resources (DynamoDB, S3, AWS Batch)
    - ✅ Set up environment variables for local development
    - ✅ Implement Java-based report generator for AWS Batch
+   - ✅ Create deployment workflow with NX commands
 
 4. **Test and Refine**:
    - ✅ Test frontend-backend integration
@@ -131,6 +138,44 @@ We have completed the project setup phase, backend implementation, and frontend 
 
 7. **API Client in Shared Package**: We've moved the API client from the experiment-api package to the shared package to allow both frontend and backend to use the same client interface, ensuring type safety and consistency.
 
+### AWS CDK Deployment Implementation
+
+We've successfully implemented and deployed a comprehensive AWS CDK stack that follows the 12-Factor App principles and the implementation rules defined in the project. The deployment architecture includes:
+
+1. **DynamoDB Tables**:
+   - Experiments table for storing experiment definitions
+   - Events table for storing experiment events
+   - Reports table for storing report metadata
+
+2. **S3 Buckets**:
+   - Reports bucket for storing generated JSON reports
+   - Web bucket for hosting the frontend application
+
+3. **API Gateway and Lambda**:
+   - REST API with CORS support and proxy integration
+   - Single Lambda function with Express.js for handling all API requests
+   - Environment variables for configuration
+
+4. **AWS Batch**:
+   - Fargate compute environment with public IP addresses
+   - Job queue for processing report generation jobs
+   - Job definition for the Java report generator
+
+5. **CloudFront Distribution**:
+   - For hosting the frontend application
+   - With proper error handling for SPA routing
+
+The deployment process is streamlined using NX commands:
+- `npx nx build api` - Builds the API
+- `npx nx build web` - Builds the web application
+- `npx nx run infrastructure:deploy` - Builds all dependencies and deploys the CDK stack
+
+The application has been successfully deployed with the following endpoints:
+- API: https://a9wkrb830e.execute-api.us-west-2.amazonaws.com/api/
+- Web: https://dy6twvdgk8blk.cloudfront.net
+
+Currently, the API is returning "Internal server error" for requests, which needs to be investigated further.
+
 ### Open Questions
 
 1. ✅ How should we handle user identification in the sample page for demonstration purposes?
@@ -143,11 +188,12 @@ We have completed the project setup phase, backend implementation, and frontend 
      - Statistical significance testing using binomial tests
      - Time series data analysis for trends
 
-3. How should we structure the DynamoDB tables for optimal query performance?
-   - We've implemented a simple structure for now, but this will need to be optimized for production.
+3. ✅ How should we structure the DynamoDB tables for optimal query performance?
+   - We've implemented a structure with appropriate partition and sort keys
+   - Added GSIs for querying reports by experimentId
 
-4. What deployment strategy should we use for the frontend application?
-   - We'll use AWS S3 and CloudFront for the frontend deployment, configured through the CDK stack.
+4. ✅ What deployment strategy should we use for the frontend application?
+   - We're using AWS S3 and CloudFront for the frontend deployment, configured through the CDK stack.
 
-5. How should we handle environment variables for the frontend in production?
-   - We've set up the frontend to use environment variables at build time, which will be provided by the CI/CD pipeline.
+5. ✅ How should we handle environment variables for the frontend in production?
+   - We've set up the frontend to use environment variables at build time, which are injected during the deployment process.

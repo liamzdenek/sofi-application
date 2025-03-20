@@ -46,10 +46,23 @@
     "cdk": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "cdk {args}",
+        "command": "cdk deploy --profile lz-demos --require-approval never",
         "cwd": "packages/infrastructure"
       },
       "dependsOn": ["build"]
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cd packages/infrastructure && cdk deploy --profile lz-demos --require-approval never",
+        "cwd": "."
+      },
+      "dependsOn": [
+        { "projects": ["api"], "target": "build" },
+        { "projects": ["web"], "target": "build" },
+        { "projects": ["shared"], "target": "build" },
+        { "projects": ["infrastructure"], "target": "build" }
+      ]
     }
   },
   "tags": ["scope:infra", "type:app"]

@@ -5,7 +5,9 @@
   "workspaces": [
     "packages/*"
   ],
-  "scripts": {},
+  "scripts": {
+    "deploy": "nx run infrastructure:deploy"
+  },
   "private": true,
   "dependencies": {
     "@aws-sdk/client-batch": "^3.758.0",
@@ -15,6 +17,7 @@
     "@tanstack/react-router": "^1.114.25",
     "@tanstack/router-devtools": "^1.114.25",
     "@types/cors": "^2.8.17",
+    "aws-lambda": "^1.0.7",
     "axios": "^1.6.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -24,6 +27,7 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-router-dom": "6.11.2",
+    "serverless-http": "^3.2.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
