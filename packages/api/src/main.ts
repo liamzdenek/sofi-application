@@ -13,6 +13,7 @@ import cors from 'cors';
 import experimentRoutes from './routes/experiments';
 import eventRoutes from './routes/events';
 import reportRoutes from './routes/reports';
+import { logger, handleError } from './lib/logger';
 
 const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
@@ -48,15 +49,27 @@ app.get('/', (req, res) => {
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Unhandled error:', err);
+  logger.error('Unhandled error', err, {
+    path: req.path,
+    method: req.method,
+    query: req.query,
+    body: req.body
+  });
+  
   res.status(500).json({
     message: 'Internal server error',
     error: process.env.NODE_ENV === 'production' ? undefined : err.message,
   });
+  
+  // Re-throw the error after responding to the client
+  setTimeout(() => handleError('Unhandled API error', err), 0);
 });
 
 // Start the server
 app.listen(port, host, () => {
-  console.log(`[ ready ] http://${host}:${port}`);
-  console.log('Environment:', process.env.NODE_ENV || 'development');
+  logger.info(`API server ready at http://${host}:${port}`, {
+    host,
+    port,
+    environment: process.env.NODE_ENV || 'development'
+  });
 });

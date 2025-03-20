@@ -6,6 +6,7 @@ import {
   updateExperiment,
   getActiveExperimentsForUser,
 } from '../lib/dynamodb';
+import { logger, handleError } from '../lib/logger';
 
 const router = express.Router();
 
@@ -41,11 +42,13 @@ router.post('/', async (req, res) => {
       experiment,
     });
   } catch (error) {
-    console.error('Error creating experiment:', error);
+    logger.error('Error creating experiment', error as Error, { body: req.body });
     res.status(500).json({
       message: 'Failed to create experiment',
       error: (error as Error).message,
     });
+    // Re-throw the error after responding to the client
+    setTimeout(() => handleError('Error creating experiment', error as Error), 0);
   }
 });
 
@@ -65,11 +68,12 @@ router.get('/', async (req, res) => {
       total: result.total,
     });
   } catch (error) {
-    console.error('Error listing experiments:', error);
+    logger.error('Error listing experiments', error as Error, { query: req.query });
     res.status(500).json({
       message: 'Failed to list experiments',
       error: (error as Error).message,
     });
+    setTimeout(() => handleError('Error listing experiments', error as Error), 0);
   }
 });
 
@@ -94,11 +98,12 @@ router.get('/active', async (req, res) => {
       experiments: activeExperiments,
     });
   } catch (error) {
-    console.error('Error getting active experiments:', error);
+    logger.error('Error getting active experiments', error as Error, { query: req.query });
     res.status(500).json({
       message: 'Failed to get active experiments',
       error: (error as Error).message,
     });
+    setTimeout(() => handleError('Error getting active experiments', error as Error), 0);
   }
 });
 
@@ -118,11 +123,12 @@ router.get('/:id', async (req, res) => {
       experiment,
     });
   } catch (error) {
-    console.error('Error getting experiment:', error);
+    logger.error('Error getting experiment', error as Error, { params: req.params });
     res.status(500).json({
       message: 'Failed to get experiment',
       error: (error as Error).message,
     });
+    setTimeout(() => handleError('Error getting experiment', error as Error), 0);
   }
 });
 
@@ -162,11 +168,15 @@ router.put('/:id', async (req, res) => {
       experiment: updatedExperiment,
     });
   } catch (error) {
-    console.error('Error updating experiment:', error);
+    logger.error('Error updating experiment', error as Error, {
+      params: req.params,
+      body: req.body
+    });
     res.status(500).json({
       message: 'Failed to update experiment',
       error: (error as Error).message,
     });
+    setTimeout(() => handleError('Error updating experiment', error as Error), 0);
   }
 });
 

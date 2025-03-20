@@ -8,6 +8,7 @@ import {
   updateReportStatus,
 } from '../lib/dynamodb';
 import { ReportJobParameters } from '@sofi-application/shared';
+import { logger, handleError } from '../lib/logger';
 
 const router = express.Router();
 
@@ -26,8 +27,14 @@ const BATCH_JOB_DEFINITION = process.env.BATCH_JOB_DEFINITION || '';
 const S3_REPORTS_BUCKET = process.env.S3_REPORTS_BUCKET || '';
 
 if (!BATCH_JOB_QUEUE || !BATCH_JOB_DEFINITION || !S3_REPORTS_BUCKET) {
-  console.error(
-    'Missing required environment variables for AWS Batch and S3'
+  logger.error(
+    'Missing required environment variables for AWS Batch and S3',
+    new Error('Missing environment variables'),
+    {
+      BATCH_JOB_QUEUE: !!BATCH_JOB_QUEUE,
+      BATCH_JOB_DEFINITION: !!BATCH_JOB_DEFINITION,
+      S3_REPORTS_BUCKET: !!S3_REPORTS_BUCKET
+    }
   );
 }
 
@@ -80,11 +87,12 @@ router.post('/', async (req, res) => {
       status: 'PENDING',
     });
   } catch (error) {
-    console.error('Error generating report:', error);
+    logger.error('Error generating report', error as Error, { body: req.body });
     res.status(500).json({
       message: 'Failed to generate report',
       error: (error as Error).message,
     });
+    setTimeout(() => handleError('Error generating report', error as Error), 0);
   }
 });
 
@@ -104,11 +112,12 @@ router.get('/:id', async (req, res) => {
       report,
     });
   } catch (error) {
-    console.error('Error getting report:', error);
+    logger.error('Error getting report', error as Error, { params: req.params });
     res.status(500).json({
       message: 'Failed to get report',
       error: (error as Error).message,
     });
+    setTimeout(() => handleError('Error getting report', error as Error), 0);
   }
 });
 
@@ -129,11 +138,12 @@ router.get('/', async (req, res) => {
       total: result.total,
     });
   } catch (error) {
-    console.error('Error listing reports:', error);
+    logger.error('Error listing reports', error as Error, { query: req.query });
     res.status(500).json({
       message: 'Failed to list reports',
       error: (error as Error).message,
     });
+    setTimeout(() => handleError('Error listing reports', error as Error), 0);
   }
 });
 
@@ -177,11 +187,12 @@ router.get('/:id/data', async (req, res) => {
       reportData,
     });
   } catch (error) {
-    console.error('Error getting report data:', error);
+    logger.error('Error getting report data', error as Error, { params: req.params });
     res.status(500).json({
       message: 'Failed to get report data',
       error: (error as Error).message,
     });
+    setTimeout(() => handleError('Error getting report data', error as Error), 0);
   }
 });
 
@@ -209,11 +220,15 @@ router.put('/:id/status', async (req, res) => {
       report: updatedReport,
     });
   } catch (error) {
-    console.error('Error updating report status:', error);
+    logger.error('Error updating report status', error as Error, {
+      params: req.params,
+      body: req.body
+    });
     res.status(500).json({
       message: 'Failed to update report status',
       error: (error as Error).message,
     });
+    setTimeout(() => handleError('Error updating report status', error as Error), 0);
   }
 });
 

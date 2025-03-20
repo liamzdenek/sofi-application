@@ -1,5 +1,6 @@
 import express from 'express';
 import { recordEvent, batchRecordEvents } from '../lib/dynamodb';
+import { logger, handleError } from '../lib/logger';
 
 const router = express.Router();
 
@@ -36,11 +37,12 @@ router.post('/', async (req, res) => {
       eventId,
     });
   } catch (error) {
-    console.error('Error recording event:', error);
+    logger.error('Error recording event', error as Error, { body: req.body });
     res.status(500).json({
       message: 'Failed to record event',
       error: (error as Error).message,
     });
+    setTimeout(() => handleError('Error recording event', error as Error), 0);
   }
 });
 
@@ -72,11 +74,12 @@ router.post('/batch', async (req, res) => {
       eventIds,
     });
   } catch (error) {
-    console.error('Error batch recording events:', error);
+    logger.error('Error batch recording events', error as Error, { body: req.body });
     res.status(500).json({
       message: 'Failed to batch record events',
       error: (error as Error).message,
     });
+    setTimeout(() => handleError('Error batch recording events', error as Error), 0);
   }
 });
 

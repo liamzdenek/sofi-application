@@ -1,11 +1,6 @@
-import styles from './ui-components.module.css';
-
-export function UiComponents() {
-  return (
-    <div className={styles['container']}>
-      <h1>Welcome to UiComponents!</h1>
-    </div>
-  );
-}
-
-export default UiComponents;
+// Export all hooks and components
+export * from './hooks/useExperiment';
+export * from './hooks/useExperimentEvent';
+export * from './components/ExperimentVariant';
+export * from './components/ExperimentEventTracker';
+export * from './context/ExperimentContext';
