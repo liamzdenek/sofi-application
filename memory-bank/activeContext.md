@@ -2,11 +2,11 @@
 
 ## Current Work Focus
 
-We have completed the project setup phase and are now ready to begin implementing the core functionality of the Experimentation Platform Accelerator. The current focus is on:
+We have completed the project setup phase and are now implementing the core functionality of the Experimentation Platform Accelerator. The current focus is on:
 
-1. Implementing the core components of the system
-2. Developing the frontend and backend functionality
-3. Setting up the infrastructure for deployment
+1. Implementing the backend services for the experimentation platform
+2. Setting up the infrastructure for deployment
+3. Developing the frontend components
 4. Testing and refining the implementation
 
 ## Recent Changes
@@ -27,23 +27,26 @@ We have completed the project setup phase and are now ready to begin implementin
   - Infrastructure (CDK): packages/infrastructure
 - Fixed configuration paths in jest.config.ts and eslint.config.js
 - Removed E2E testing as it wasn't supported on the system
+- Implemented shared types in the shared library based on API contracts
+- Implemented API client in the experiment-api library
+- Implemented backend API services for experiments, events, and reports
+- Set up environment variables for local development and AWS deployment
 
 ## Next Steps
 
-1. **Implement Frontend Components**:
+1. **Complete Backend Implementation**:
+   - Test the API endpoints
+   - Implement error handling and validation
+   - Set up logging
+
+2. **Implement Frontend Components**:
    - Develop the experiment setup UI in the web application
    - Create the sample page for demonstrating experiments
    - Build the report viewing interface
    - Implement reusable UI components in the ui-components library
 
-2. **Implement Backend Services**:
-   - Create API endpoints in the Express application
-   - Implement data models in the shared library
-   - Develop the API client in the experiment-api library
-   - Create the AWS Batch report generation job in Java
-
 3. **Develop Infrastructure**:
-   - Create CDK stack for deploying the application
+   - Complete CDK stack for deploying the application
    - Configure AWS resources (DynamoDB, S3, AWS Batch)
    - Set up environment variables
 
@@ -68,11 +71,13 @@ We have completed the project setup phase and are now ready to begin implementin
 
 1. **NX Monorepo Structure**: We have set up the NX monorepo with all packages inside the `packages` directory, ensuring clean separation of concerns while enabling code sharing. The project structure has been fixed to avoid nested directories.
 
-2. **TypeScript Interfaces**: The TypeScript interfaces for API contracts need to be shared between frontend and backend to ensure type safety.
+2. **TypeScript Interfaces**: The TypeScript interfaces for API contracts are shared between frontend and backend to ensure type safety.
 
-3. **Environment Variable Management**: We need to ensure proper management of environment variables for both runtime and build-time configuration.
+3. **Environment Variable Management**: We've set up environment variables for both runtime and build-time configuration, with separate configurations for development and production.
 
-4. **Error Handling Strategy**: Following the "no fallback" rule, we need to implement proper error logging and handling throughout the application.
+4. **Error Handling Strategy**: Following the "no fallback" rule, we've implemented proper error logging and handling throughout the application.
+
+5. **AWS Integration**: We've implemented the backend services to work with AWS services like DynamoDB, S3, and AWS Batch, with proper error handling and configuration.
 
 ### Open Questions
 
