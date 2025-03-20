@@ -1,26 +1,26 @@
-# Product Context: SoFi Application Project
+# Product Context: Experimentation Platform Accelerator
 
 ## Why This Project Exists
-This project exists to create a differentiated job application that stands out from traditional resumes and cover letters. By developing a tangible demonstration of skills and problem-solving abilities, the applicant aims to:
+This project exists to address the challenge of innovation agility in modern organizations. By creating a lightweight experimentation platform, we aim to:
 
-1. Demonstrate initiative and proactive problem-solving
-2. Show understanding of SoFi's business challenges
-3. Provide concrete evidence of capabilities relevant to the Principal Engineer role
-4. Create a memorable impression on decision-makers at SoFi
+1. Enable rapid testing and validation of new features and ideas
+2. Provide data-driven insights to inform product decisions
+3. Reduce the technical overhead of implementing experiments
+4. Accelerate the feedback loop between idea and implementation
 
 ## Problems It Solves
 
-### For the Applicant
-- Differentiates the application in a competitive job market
-- Demonstrates skills in a practical, tangible way rather than just listing them
-- Creates an opportunity to showcase specific expertise relevant to SoFi's needs
-- Bypasses traditional HR filters to reach key decision-makers
+### For Product Teams
+- Reduces the time and effort required to set up experiments
+- Provides clear, actionable data to inform product decisions
+- Enables more frequent and systematic testing of ideas
+- Reduces the risk of investing in unproven features
 
-### For SoFi
-- Provides a potential solution to a significant business risk (innovation agility)
-- Offers a preview of the applicant's problem-solving approach and technical abilities
-- Demonstrates the applicant's understanding of SoFi's business model and challenges
-- Saves time in the evaluation process by showing capabilities in action
+### For Engineering Teams
+- Standardizes the implementation of experiments across products
+- Reduces the technical overhead of experiment setup and tracking
+- Provides a consistent framework for measuring impact
+- Enables more efficient use of engineering resources
 
 ## How It Should Work
 The Experimentation Platform Accelerator should:
@@ -38,4 +38,4 @@ The Experimentation Platform Accelerator should:
 - **Actionability**: Provide clear guidance on next steps based on results
 - **Flexibility**: Support different types of experiments and metrics
 
-The platform should demonstrate how SoFi could accelerate innovation by making experimentation a seamless part of their development process, enabling them to respond more quickly to evolving technological changes and customer needs.
+The platform should demonstrate how organizations can accelerate innovation by making experimentation a seamless part of their development process, enabling them to respond more quickly to evolving technological changes and customer needs.

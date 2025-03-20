@@ -1,4 +1,4 @@
-# System Patterns: SoFi Application Project
+# System Patterns: Experimentation Platform Accelerator
 
 ## System Architecture
 
@@ -13,6 +13,7 @@ The Experimentation Platform Accelerator follows a simplified architecture with 
 
 ### Project Structure
 - **NX Monorepo**: Using NX for managing the project structure and build processes
+  - All monorepo packages must be inside a `packages` directory
 - **TypeScript**: Using TypeScript for type safety and better developer experience
 - **CSS Modules**: For component styling without external frameworks
 
@@ -75,6 +76,7 @@ The Experimentation Platform Accelerator follows a simplified architecture with 
 
 4. **Build and Development**:
    - No one-off scripts, attach all scripts to `nx run` commands
+   - Use an NX monorepo with all packages inside a `packages` directory
    - Initialize projects using appropriate `nx generate` commands
    - Use TypeScript by default
    - Use CSS modules, no Tailwind CSS or other CSS frameworks

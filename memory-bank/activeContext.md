@@ -1,4 +1,4 @@
-# Active Context: SoFi Application Project
+# Active Context: Experimentation Platform Accelerator
 
 ## Current Work Focus
 
@@ -15,6 +15,8 @@ We are currently in the initial planning and architecture phase of the Experimen
 - Defined the simplified architecture for the Experimentation Platform Accelerator
 - Established implementation rules and technical constraints
 - Defined the API contracts and data flows between components
+- Added detailed TypeScript interfaces for all API contracts in api-contracts.md
+- Updated project structure to place all monorepo packages in a `packages` directory
 
 ## Next Steps
 
@@ -50,7 +52,7 @@ We are currently in the initial planning and architecture phase of the Experimen
 
 ### Implementation Considerations
 
-1. **NX Monorepo Structure**: We need to carefully plan the NX project structure to ensure clean separation of concerns while enabling code sharing.
+1. **NX Monorepo Structure**: We need to carefully plan the NX project structure to ensure clean separation of concerns while enabling code sharing. All monorepo packages must be placed inside a `packages` directory.
 
 2. **TypeScript Interfaces**: The TypeScript interfaces for API contracts need to be shared between frontend and backend to ensure type safety.
 

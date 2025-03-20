@@ -1,4 +1,4 @@
-# Technical Context: SoFi Application Project
+# Technical Context: Experimentation Platform Accelerator
 
 ## Technologies Used
 
@@ -32,14 +32,12 @@
 ### Project Structure
 ```
 sofi-application/
-├── apps/
+├── packages/                # All monorepo packages go here
 │   ├── web/                 # React web application
-│   └── api/                 # API Lambda functions
-├── libs/
+│   ├── api/                 # API Lambda functions
 │   ├── shared/              # Shared types and utilities
 │   ├── experiment-api/      # API client for experiment service
-│   └── ui-components/       # Reusable UI components
-├── tools/
+│   ├── ui-components/       # Reusable UI components
 │   └── report-generator/    # Java report generation tool
 └── infrastructure/          # CDK infrastructure code
 ```
