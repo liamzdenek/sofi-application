@@ -1,0 +1,19 @@
+{
+  "name": "experiment-api",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/experiment-api/src",
+  "projectType": "library",
+  "tags": ["scope:api", "type:lib"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/experiment-api",
+        "main": "packages/experiment-api/src/index.ts",
+        "tsConfig": "packages/experiment-api/tsconfig.lib.json",
+        "assets": ["packages/experiment-api/*.md"]
+      }
+    }
+  }
+}

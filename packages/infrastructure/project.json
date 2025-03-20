@@ -1,0 +1,56 @@
+{
+  "name": "infrastructure",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/infrastructure/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/infrastructure",
+        "main": "packages/infrastructure/src/main.ts",
+        "tsConfig": "packages/infrastructure/tsconfig.app.json",
+        "assets": ["packages/infrastructure/src/assets"]
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "extractLicenses": true,
+          "inspect": false
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "infrastructure:build"
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "infrastructure:build:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "packages/infrastructure/jest.config.ts"
+      }
+    },
+    "cdk": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cdk {args}",
+        "cwd": "packages/infrastructure"
+      },
+      "dependsOn": ["build"]
+    }
+  },
+  "tags": ["scope:infra", "type:app"]
+}
