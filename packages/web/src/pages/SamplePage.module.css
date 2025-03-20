@@ -1,0 +1,241 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.description {
+  font-size: 1.1rem;
+  color: #7f8c8d;
+  margin-bottom: 2rem;
+}
+
+.checkoutContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .checkoutContainer {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.cartSection {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.cartSection h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+.cartItems {
+  margin-bottom: 2rem;
+}
+
+.cartItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.itemDetails {
+  flex: 1;
+}
+
+.itemDetails h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+.itemPrice {
+  margin: 0.25rem 0 0;
+  color: #7f8c8d;
+}
+
+.itemQuantity {
+  display: flex;
+  align-items: center;
+  margin: 0 1.5rem;
+}
+
+.itemQuantity span {
+  margin: 0 0.75rem;
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+.quantityButton {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: background-color 0.2s ease;
+}
+
+.quantityButton:hover:not(:disabled) {
+  background-color: #e9ecef;
+}
+
+.quantityButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.itemTotal {
+  font-weight: 600;
+  color: #2c3e50;
+  min-width: 80px;
+  text-align: right;
+}
+
+.cartSummary {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.total {
+  font-weight: 700;
+  font-size: 1.25rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.checkoutSection {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.checkoutSection h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.formGroup input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.checkoutButton {
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+  margin-top: 1.5rem;
+}
+
+.checkoutButton:hover {
+  filter: brightness(90%);
+}
+
+.successMessage {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.successMessage h2 {
+  margin-top: 0;
+}
+
+.continueButton {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 1rem;
+}
+
+.continueButton:hover {
+  background-color: #218838;
+}
+
+.experimentInfo {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 3rem;
+}
+
+.experimentInfo h3 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.experimentActive {
+  display: inline-block;
+  margin-left: 0.5rem;
+  color: #28a745;
+  font-weight: 600;
+}
+
+.experimentInactive {
+  display: inline-block;
+  margin-left: 0.5rem;
+  color: #6c757d;
+  font-weight: 600;
+}

@@ -1,0 +1,10 @@
+{
+  "name": "@sofi-application/web",
+  "version": "0.0.1",
+  "dependencies": {
+    "@sofi-application/shared": "*",
+    "@sofi-application/ui-components": "*",
+    "@tanstack/react-router": "^1.114.25",
+    "@tanstack/router-devtools": "^1.114.25"
+  }
+}

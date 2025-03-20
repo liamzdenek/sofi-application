@@ -1,0 +1,84 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.description {
+  font-size: 1.2rem;
+  color: #7f8c8d;
+  margin-bottom: 2.5rem;
+}
+
+.cardContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card h2 {
+  font-size: 1.5rem;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  color: #2c3e50;
+}
+
+.card p {
+  color: #7f8c8d;
+  margin-bottom: 1.5rem;
+}
+
+.button {
+  display: inline-block;
+  background-color: #3498db;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.button:hover {
+  background-color: #2980b9;
+}
+
+.infoSection {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 2rem;
+  margin-top: 2rem;
+}
+
+.infoSection h2 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.infoSection ul {
+  padding-left: 1.5rem;
+  margin-bottom: 0;
+}
+
+.infoSection li {
+  margin-bottom: 0.5rem;
+}

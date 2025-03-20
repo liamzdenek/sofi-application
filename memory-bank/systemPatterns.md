@@ -33,6 +33,10 @@ The Experimentation Platform Accelerator follows a simplified architecture with 
 - **Component-Based Architecture**: Modular React components
 - **Container/Presentational Pattern**: Separating data fetching from presentation
 - **Custom Hooks**: For reusable logic across components
+- **TanStack Router**: For type-safe routing and navigation
+- **CSS Modules**: For component-scoped styling
+- **Context API**: For sharing experiment data across components
+- **Layout/Page Pattern**: Separating layout structure from page content
 
 ### Backend Patterns
 - **API Gateway + Lambda**: Serverless API implementation
@@ -40,6 +44,8 @@ The Experimentation Platform Accelerator follows a simplified architecture with 
 - **Event-Driven Architecture**: For report generation workflow
 
 ## Component Relationships
+
+### System Architecture
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
@@ -56,6 +62,42 @@ The Experimentation Platform Accelerator follows a simplified architecture with 
                         │  (Java Report   │     │ (JSON Reports)  │
                         │   Generator)    │     │                 │
                         └─────────────────┘     └─────────────────┘
+```
+
+### Frontend Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Web Application                         │
+│                                                             │
+│  ┌─────────────────┐     ┌─────────────────────────────┐    │
+│  │                 │     │                             │    │
+│  │   TanStack      │────▶│         RootLayout          │    │
+│  │    Router       │     │                             │    │
+│  │                 │◀────│                             │    │
+│  └─────────────────┘     └───────────────┬─────────────┘    │
+│                                          │                  │
+│                                          ▼                  │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │             │  │             │  │             │         │
+│  │  HomePage   │  │Experiments  │  │ ReportsPage │         │
+│  │             │  │    Page     │  │             │         │
+│  └─────────────┘  └─────────────┘  └─────────────┘         │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │                                                     │   │
+│  │                  UI Components                      │   │
+│  │                                                     │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ │   │
+│  │  │             │  │             │  │             │ │   │
+│  │  │ Experiment  │  │ Experiment  │  │ Experiment  │ │   │
+│  │  │  Provider   │  │   Variant   │  │EventTracker │ │   │
+│  │  │             │  │             │  │             │ │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘ │   │
+│  │                                                     │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ## Implementation Rules
