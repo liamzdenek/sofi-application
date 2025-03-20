@@ -1,0 +1,60 @@
+# SoFi Application Project Rules
+
+## Implementation Rules
+
+1. **12-Factor App**
+   - Implement a 12-Factor app, to the extent it can be done cloud natively
+   - Use environment variables for configuration at runtime
+
+2. **AWS Resource Configuration**
+   - Pass location/ARN of AWS resources through environment variables
+   - For front-end code, make environment variables available at build time
+
+3. **Error Handling**
+   - Do not implement fallback, ever
+   - Either your main path works, or it fails and we log the failure
+
+4. **Build and Development**
+   - Never write one-off scripts, always attach them to an `nx run` command
+   - Use an NX monorepo
+   - Do not initialize the NX projects by writing files, instead, use the appropriate `nx generate` command
+   - Use TypeScript by default, but other instructions can override this
+   - Use CSS modules, no Tailwind CSS, no CSS framework
+   - Always `--save` or `--save-dev` your dependencies
+
+5. **Infrastructure**
+   - Design your infrastructure for AWS
+   - Deploy using CDK
+   - Use NodejsFunction primitive in CDK
+
+## Project Patterns
+
+### Code Organization
+- Keep related functionality together in NX libraries
+- Share types and interfaces across projects
+- Use barrel exports for clean imports
+
+### Naming Conventions
+- Use kebab-case for file names
+- Use PascalCase for component names
+- Use camelCase for variables and functions
+- Use UPPER_SNAKE_CASE for environment variables
+
+### API Design
+- Use RESTful principles for API endpoints
+- Implement consistent error handling
+- Return appropriate HTTP status codes
+
+### State Management
+- Use React hooks for local state
+- Keep state as close to where it's used as possible
+- Use context for shared state when necessary
+
+### Testing
+- Write unit tests for critical functionality
+- Use integration tests for API endpoints
+- Test error handling paths
+
+## Project Intelligence
+
+As we work on the project, we'll document additional patterns, preferences, and insights here to help guide future development.
